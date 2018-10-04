@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Repository.fs" />
+    <Compile Include="Parse.fs" />
+    <None Include="Validation.fs" />
+    <PackageReference Include="Dapper" Version="1.50.5" />
+    <PackageReference Include="Npgsql" Version="4.0.3" />
+  </ItemGroup>
+</Project>

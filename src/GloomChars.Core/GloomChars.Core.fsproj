@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Types.fs" />
+    <Compile Include="CharacterRepository.fs" />
+    <Compile Include="DeckService.fs" />
+    <Compile Include="PerkService.fs" />
+    <Compile Include="GloomService.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\GloomChars.Common\GloomChars.Common.fsproj" />
+  </ItemGroup>
+</Project>
