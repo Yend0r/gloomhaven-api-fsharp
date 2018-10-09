@@ -4,7 +4,6 @@ open System
 open Xunit
 open FsUnit
 open GloomChars.Core
-open GloomChars.Setup
 
 module GloomClassTests = 
 

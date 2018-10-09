@@ -4,7 +4,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Types.fs" />
-    <Compile Include="GameDataRepository.fs" />
     <Compile Include="GameData.fs" />
     <Compile Include="CharacterRepository.fs" />
     <Compile Include="DeckService.fs" />
