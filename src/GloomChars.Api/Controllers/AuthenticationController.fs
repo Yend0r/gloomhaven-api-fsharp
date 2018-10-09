@@ -6,12 +6,27 @@ module AuthenticationController =
     open FSharp.Control.Tasks.ContextInsensitive
     open GloomChars.Authentication
     open CompositionRoot
+    open FSharpPlus
+    open ResponseHandlers
 
     [<CLIMutable>]
     type LoginRequest =
         {
             Email    : string
             Password : string
+        }
+
+    [<CLIMutable>]
+    type ForgotPasswordRequest =
+        {
+            Email : string
+        }
+
+    [<CLIMutable>]
+    type PasswordResetRequest =
+        {
+            NewPassword : string
+            ResetToken  : string
         }
 
     type LoginResponse =
@@ -21,30 +36,60 @@ module AuthenticationController =
             AccessTokenExpiresAt : DateTime
         }
 
+    type ForgotPasswordResponse =
+        {
+            ResetToken     : string
+            TokenExpiresAt : DateTime
+        }
+
     let private createLoginResponse (user : AuthenticatedUser) : LoginResponse = 
+        let (AccessToken token) = user.AccessToken
         {
             Email                = user.Email
-            AccessToken          = user.AccessToken
+            AccessToken          = token
             AccessTokenExpiresAt = user.AccessTokenExpiresAt
         }
 
-    let login (loginRequest : LoginRequest) : HttpHandler = 
-        let result = AuthenticationSvc.authenticate loginRequest.Email loginRequest.Password
+    let private createForgotPasswordResponse resetToken tokenExpiresAt : ForgotPasswordResponse = 
+        {
+            ResetToken     = resetToken
+            TokenExpiresAt = tokenExpiresAt
+        }
 
-        match result with 
-        | Ok user ->
-            json (createLoginResponse user)
-        | Error _ ->
-            ResponseUtils.BAD_REQUEST "Invalid email/password" ""
+    let login ctx (loginRequest : LoginRequest) : HttpHandler = 
+        AuthenticationSvc.authenticate loginRequest.Email loginRequest.Password
+        >>= AuthenticationSvc.getAuthenticatedUser
+        |> map createLoginResponse
+        |> resultToJson "Invalid email/password"
 
+    let logout ctx : HttpHandler = 
+        WebAuthentication.getAccessToken ctx
+        |> map AuthenticationSvc.revokeToken
+        |> map (fun _ -> toMessage "Logged out")
+        |> resultToJson "Logout failed. No credentials supplied."
 
-    //TODO: forgotten password
+    let sendPasswordResetEmail ctx (forgotPasswordRequest : ForgotPasswordRequest) : HttpHandler = 
+        BAD_REQUEST "Not implemented" ""
 
+    let passwordReset ctx (passwordResetRequest : PasswordResetRequest) : HttpHandler = 
+        BAD_REQUEST "Not implemented" ""
+
+module AuthenticationRoutes =
+    open Giraffe
+    open RequestHandlers
+    open AuthenticationController 
+    open WebAuthentication
 
     let router : HttpHandler =  
         choose [
             POST >=>
                 choose [
-                    ControllerUtils.postCi "/login" login
+                    postCi "/authentication/login" login
+                    postCi "/authentication/forgotpassword" sendPasswordResetEmail
+                    postCi "/authentication/resetpassword" passwordReset
+                ]
+            DELETE >=>
+                choose [
+                    requiresAuthenticatedUser >=>  deleteCi "/authentication/logout" logout 
                 ]
         ]

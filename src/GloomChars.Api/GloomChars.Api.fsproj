@@ -12,9 +12,9 @@
   <ItemGroup>
     <Compile Include="Config.fs" />
     <Compile Include="CompositionRoot.fs" />
-    <Compile Include="ResponseUtils.fs" />
+    <Compile Include="ResponseHandlers.fs" />
+    <Compile Include="RequestHandlers.fs" />
     <Compile Include="WebAuthentication.fs" />
-    <Compile Include="ControllerUtils.fs" />
     <Compile Include="Controllers\UsersController.fs" />
     <Compile Include="Controllers\AuthenticationController.fs" />
     <Compile Include="Controllers\DefaultController.fs" />
@@ -26,10 +26,11 @@
     </Content>
     <None Include="appsettings.Production.json" />
     <None Include="appsettings.Development.json" />
-    <PackageReference Include="Giraffe" Version="2.0.*" />
-    <ProjectReference Include="..\GloomChars.Core\GloomChars.Core.fsproj" />
-    <ProjectReference Include="..\GloomChars.Common\GloomChars.Common.fsproj" />
-    <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.*" />
     <ProjectReference Include="..\GloomChars.Authentication\GloomChars.Authentication.fsproj" />
+    <ProjectReference Include="..\GloomChars.Common\GloomChars.Common.fsproj" />
+    <ProjectReference Include="..\GloomChars.Core\GloomChars.Core.fsproj" />
+    <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.*" />
+    <PackageReference Include="FSharpPlus" Version="1.0.0" />
+    <PackageReference Include="Giraffe" Version="2.0.*" />
   </ItemGroup>
 </Project>

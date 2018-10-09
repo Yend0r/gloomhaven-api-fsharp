@@ -2,6 +2,8 @@ namespace GloomChars.Authentication
 
 open System
 
+type AccessToken = AccessToken of string
+
 type AuthenticationConfig = 
     {
         AccessTokenDurationInMins   : int
@@ -46,9 +48,16 @@ type AuthenticatedUser =
     {
         Id                   : int
         Email                : string
-        AccessToken          : string 
+        AccessToken          : AccessToken 
         AccessTokenExpiresAt : DateTime
         IsSystemAdmin        : bool
+    }
+
+type NewLogin = 
+    {
+        UserId               : int
+        AccessToken          : AccessToken 
+        AccessTokenExpiresAt : DateTime
     }
 
 type LoginStatusUpdate = 

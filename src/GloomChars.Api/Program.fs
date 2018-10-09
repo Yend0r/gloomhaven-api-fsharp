@@ -9,23 +9,23 @@ open Microsoft.Extensions.Logging
 open Microsoft.Extensions.DependencyInjection
 open Giraffe
 open GloomChars.Common
+open WebAuthentication
 
 // ---------------------------------
 // Web app
 // ---------------------------------
 
-let requiresAuthUser = WebAuthentication.requiresAuthenticatedUser
-
 let webApp =
     choose [
-        routeStartsWithCi "/login" >=> AuthenticationController.router
-        routeStartsWithCi "/users" >=> requiresAuthUser UsersController.router
+        routeStartsWithCi "/authentication" >=> AuthenticationRoutes.router
+        requiresAuthenticatedUser >=> routeStartsWithCi "/users" >=> UsersRoutes.router
             
         GET >=>
             choose [
                 route "/" >=> DefaultController.indexHandler()
             ]
-        setStatusCode 404 >=> text "Not Found" ]
+        setStatusCode 404 >=> text "Not Found" 
+    ]
 
 // ---------------------------------
 // Error handler

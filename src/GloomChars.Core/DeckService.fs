@@ -3,11 +3,8 @@
 open System
 
 module DeckService = 
-
-    let modCard action dmg (drawAction : DrawAction) = 
-        let drawAnother = if drawAction=Draw then true else false
-        { DrawAnother=drawAnother; Reshuffle=false; Action=action; Damage=dmg }
-
+    open GameData 
+    
     let private shuffleModCard action dmg (drawAction : DrawAction) = 
         let drawAnother = if drawAction=Draw then true else false
         { DrawAnother=drawAnother; Reshuffle=true; Action=action; Damage=dmg }

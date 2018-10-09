@@ -1,54 +1,33 @@
 ﻿namespace GloomChars.Api
 
 module UsersController = 
-    open System
     open Giraffe
+    open Microsoft.AspNetCore.Http
     open FSharp.Control.Tasks.ContextInsensitive
-    open GloomChars.Authentication
     open CompositionRoot
+    open ResponseHandlers
+    open FSharpPlus
 
     [<CLIMutable>]
-    type RegistrationRequest =
+    type AddUserRequest =
         {
             Email    : string
             Password : string
         }
 
-    type LoginResponse =
-        {
-            Email                : string
-            AccessToken          : string
-            AccessTokenExpiresAt : DateTime
-        }
+    let addUser (ctx : HttpContext) (addUserRequest : AddUserRequest) : HttpHandler = 
+        //TODO this can only called by someone with "SystemAdmin" permissions
+        BAD_REQUEST "Not implemented" ""
 
-    let private createLoginResponse (user : AuthenticatedUser) : LoginResponse = 
-        {
-            Email                = user.Email
-            AccessToken          = user.AccessToken
-            AccessTokenExpiresAt = user.AccessTokenExpiresAt
-        }
+module UsersRoutes = 
+    open Giraffe
+    open RequestHandlers
+    open UsersController 
 
-    let register (registrationRequest : RegistrationRequest) : HttpHandler = 
-        let result = AuthenticationSvc.authenticate loginRequest.Email loginRequest.Password
-
-        match result with 
-        | Ok user ->
-            json (createLoginResponse user)
-        | Error _ ->
-            ResponseUtils.BAD_REQUEST "Invalid email/password" ""
-
-    let logout (user : AuthenticatedUser) : HttpHandler = 
-        AuthenticationSvc.revokeToken user.AccessToken
-        ResponseUtils.SUCCESS "Logged out"
-
-    let router (user : AuthenticatedUser) : HttpHandler =  
+    let router : HttpHandler =  
         choose [
             POST >=>
                 choose [
-                    ControllerUtils.postCi "/users/register" register 
-                ]
-            DELETE >=>
-                choose [
-                    ControllerUtils.deleteCi "/users/logout" (logout user) 
+                    postCi "/users" addUser 
                 ]
         ]

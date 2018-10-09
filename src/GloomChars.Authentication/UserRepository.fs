@@ -1,11 +1,9 @@
 ﻿namespace GloomChars.Authentication
 
-open GloomChars.Common
-open GloomChars.Common.QueryUtils
-
 [<RequireQualifiedAccess>]
-module internal RegistrationSql = 
-    
+module internal UserSql = 
+    open GloomChars.Common.QueryUtils
+
     let insertNewUser email passwordHash = 
         sql
             """
@@ -31,7 +29,8 @@ module internal RegistrationSql =
             ]
 
 [<RequireQualifiedAccess>]
-module RegistrationRepository = 
+module UserRepository = 
+    open GloomChars.Common
 
     let insertNewUser 
         (dbContext : IDbContext)
@@ -39,7 +38,7 @@ module RegistrationRepository =
         (hashedPassword : string) : Result<int,string> = 
         
         let result =
-            RegistrationSql.insertNewUser email hashedPassword
+            UserSql.insertNewUser email hashedPassword
             |> dbContext.TryExecuteScalar
 
         match result with 

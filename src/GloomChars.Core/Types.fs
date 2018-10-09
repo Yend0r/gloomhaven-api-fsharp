@@ -1,6 +1,7 @@
 ﻿namespace GloomChars.Core
 
 open System
+open GloomChars.Common
 
 type DslText =
     | With
@@ -43,25 +44,26 @@ type CardAction =
     | Pierce of PierceAmount
     | Heal of HealAmount
     | Shield of ShieldAmount
+    with override this.ToString() = Utils.unionToString this
 
 type ModifierCard = 
     {
         DrawAnother : bool
-        Reshuffle : bool
-        Action : CardAction 
-        Damage : int
+        Reshuffle   : bool
+        Action      : CardAction 
+        Damage      : int //Not an option type because the game docs often have text that says "+0" dmg
     }
 
 type ModifierDeck = 
     {
-        Cards : ModifierCard list
+        Cards      : ModifierCard list
         DrawnCards : ModifierCard list
     }
 
 type PerkCardAction = 
     {
         NumCards : int
-        Card : ModifierCard
+        Card     : ModifierCard
     }
 
 type PerkAction =
@@ -69,13 +71,15 @@ type PerkAction =
     | AddCard of PerkCardAction 
     | IgnoreScenarioEffects 
     | IgnoreItemEffects 
+    with override this.ToString() = Utils.unionToString this
 
 type Perk = 
     {
-        Quantity : int //The number of times this perk is available
-        Actions : PerkAction list
+        Id       : string //Unique id for the perk
+        Quantity : int //The number of times this perk can be claimed
+        Actions  : PerkAction list
     }
-
+    
 type GloomClassName = 
     | Brute
     | Tinkerer
@@ -94,23 +98,66 @@ type GloomClassName =
     | Sawbones
     | Elementalist
     | BeastTyrant
+    with
+        override this.ToString() = Utils.unionToString this
+        static member fromString s = 
+            match Utils.unionFromString<GloomClassName> s with
+            | Some name -> name
+            | None -> raise (new Exception("Invalid Gloomhaven class name")) //Bad data... need to manually fix
 
 type GloomClass = 
     {
-        ClassName : GloomClassName
-        Name : string
-        Symbol : string
+        ClassName  : GloomClassName
+        Name       : string
+        Symbol     : string
         IsStarting : bool
-        Perks : Perk list
+        Perks      : Perk list
     }
 
 type Character = 
     { 
-        Id : int
-        Name : string
-        GloomClass : GloomClass
-        Experience : int
-        Gold : int
+        Id           : int
+        UserId       : int
+        Name         : string
+        ClassName    : GloomClassName
+        Experience   : int
+        Gold         : int
         Achievements : int
-        Perks : Perk list
+        Perks        : Perk list
+    }
+
+type NewCharacter = 
+    {
+        UserId       : int
+        Name         : string
+        ClassName    : GloomClassName
+        Experience   : int
+        Gold         : int
+        Achievements : int
+    }
+
+type CharacterUpdate = 
+    { 
+        Id           : int
+        UserId       : int
+        Name         : string
+        ClassName    : GloomClassName
+        Experience   : int
+        Gold         : int
+        Achievements : int
+        PerkIds      : int list
+    }
+
+//--------------------------------------------
+// Database classes
+//--------------------------------------------
+type DbCharacter = 
+    { 
+        Id           : int
+        UserId       : int
+        Name         : string
+        ClassName    : string
+        Experience   : int
+        Gold         : int
+        Achievements : int
     }

@@ -1,6 +1,6 @@
 ﻿namespace GloomChars.Api
 
-module ResponseUtils = 
+module ResponseHandlers = 
     open Giraffe
 
     type ApiError =
@@ -41,7 +41,9 @@ module ResponseUtils =
 
     let badRequestError title detail = createApiError title detail
 
-    let SUCCESS msg = json { Message = msg }
+    let toMessage msg = { Message = msg }
+
+    let SUCCESS msg = json (toMessage msg)
 
     let BAD_REQUEST title detail = 
         setStatusCode 400 
@@ -68,11 +70,16 @@ module ResponseUtils =
         | Ok x -> json (f x)
         | Error error -> BAD_REQUEST errorMsg error
 
-    let resultToJson result errorMsg = 
+    let resultToJson errorMsg result = 
         match result with 
         | Ok x -> json x
         | Error error -> BAD_REQUEST errorMsg error
 
+    let resultToSuccess successMsg errorMsg result = 
+        match result with 
+        | Ok x -> SUCCESS successMsg
+        | Error error -> BAD_REQUEST errorMsg error
+        
     let mapOptionToJson opt f errorMsg = 
         match opt with 
         | Some x -> json (f x)

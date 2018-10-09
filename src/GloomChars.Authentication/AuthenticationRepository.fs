@@ -23,7 +23,9 @@ module internal AuthenticationSql =
             """
             [ p "email" email ]
 
-    let insertNewLogin (authUser : AuthenticatedUser) = 
+    let insertNewLogin (newLogin : NewLogin) = 
+        let (AccessToken token) = newLogin.AccessToken
+
         sql
             """
             INSERT INTO auth_tokens
@@ -41,9 +43,9 @@ module internal AuthenticationSql =
             RETURNING id
             """
             [
-                p "user_id" authUser.Id
-                p "access_token" authUser.AccessToken
-                p "date_expires" authUser.AccessTokenExpiresAt
+                p "user_id" newLogin.UserId
+                p "access_token" token
+                p "date_expires" newLogin.AccessTokenExpiresAt
             ]
 
     let updateLoginDetails (statusUpdate : LoginStatusUpdate) = 
@@ -117,16 +119,15 @@ module AuthenticationRepository =
             LockedOutStatus = lockedOutStatus
         }
 
-
     let getUserByEmail (dbContext : IDbContext) (email : string) : User option = 
         AuthenticationSql.getUserByEmail email
         |> dbContext.Query<DbUser>
         |> Array.tryHead
         |> Option.map mapToUser
 
-    let insertNewLogin (dbContext : IDbContext) (authUser : AuthenticatedUser) = 
+    let insertNewLogin (dbContext : IDbContext) (newLogin : NewLogin) = 
         let result =
-            AuthenticationSql.insertNewLogin authUser
+            AuthenticationSql.insertNewLogin newLogin
             |> dbContext.TryExecuteScalar
 
         match result with 
@@ -141,11 +142,13 @@ module AuthenticationRepository =
         |> ignore
 
     let getAuthenticatedUser (dbContext : IDbContext) accessToken = 
-        AuthenticationSql.getAuthenticatedUser accessToken
+        let (AccessToken token) = accessToken
+        AuthenticationSql.getAuthenticatedUser token
         |> dbContext.Query<AuthenticatedUser>
         |> Array.tryHead
 
     let revokeToken (dbContext : IDbContext) accessToken = 
-        AuthenticationSql.revoke accessToken
+        let (AccessToken token) = accessToken
+        AuthenticationSql.revoke token
         |> dbContext.Execute
         |> ignore

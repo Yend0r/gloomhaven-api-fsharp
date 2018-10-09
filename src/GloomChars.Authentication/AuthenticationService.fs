@@ -3,6 +3,7 @@
 open System
 open System.Text
 open GloomChars.Common
+open FSharpPlus
 
 [<RequireQualifiedAccess>]
 module AuthenticationService =
@@ -47,7 +48,7 @@ module AuthenticationService =
         | NotLockedOut -> 
             Ok user
 
-    let private checkPassword password (onInvalidPwd : User -> unit) (user : User) = 
+    let private checkPassword (onInvalidPwd : User -> unit) password (user : User) = 
         //If we got a user then always do the password check to hamper time based attacks
         let passwordVerified = PasswordHasher.verifyHashedPassword(user.Email, user.PasswordHash, password)
 
@@ -61,25 +62,24 @@ module AuthenticationService =
 
     let private createLogin
         (config : AuthenticationConfig) 
-        (dbInsertNewLogin : AuthenticatedUser -> Result<int, string>)
+        (dbInsertNewLogin : NewLogin -> Result<int, string>)
         (onSuccessfulLogin : int -> unit)
         (user : User) = 
 
         //Log them in
-        let authenticatedUser = 
+        let newLogin = 
             {
-                Id = user.Id
-                Email = user.Email
-                AccessToken = Guid.NewGuid().ToString() 
+                UserId = user.Id
+                AccessToken = AccessToken(string (Guid.NewGuid())) 
                 AccessTokenExpiresAt = DateTime.UtcNow.AddMinutes(float config.AccessTokenDurationInMins) 
             }
 
-        dbInsertNewLogin authenticatedUser
+        dbInsertNewLogin newLogin
         |> function 
         | Ok _ -> 
             //Update user details - reset login attempts to zero
             onSuccessfulLogin(user.Id)
-            Ok authenticatedUser
+            Ok newLogin.AccessToken
         | Error err -> 
             Error err
 
@@ -90,8 +90,9 @@ module AuthenticationService =
     let private getUserByEmail dbGetUser email = 
         match dbGetUser email with 
         | None -> 
-            //No such user... do a fake password check so attackers cannot tell that the email doesn't exist
-            //Although this is probably pointless because they can use the password reset form to check emails
+            //No such user... do a fake password check (to take the same time as a real email) 
+            //so attackers cannot tell that the email doesn't exist. Although this is probably 
+            //pointless because they can use the password reset form to check emails... maybe it defeats dumb attackers.
             hashFakePassword()
             Error "Invalid email/password."
         | Some user ->
@@ -101,23 +102,27 @@ module AuthenticationService =
         (config : AuthenticationConfig)
         (dbGetUser : string -> User option)
         (dbUpdateLoginStatus : LoginStatusUpdate -> unit)
-        (dbInsertNewLogin : AuthenticatedUser -> Result<int, string>)
+        (dbInsertNewLogin : NewLogin -> Result<int, string>)
         (email : string)
         (password : string) = 
 
-        //Partially apply some fns to make the code clearer
-        let getUser = getUserByEmail dbGetUser
-        let updateStatus = updateLoginStatus dbUpdateLoginStatus 
-        let onInvalidPassword = updateLockoutStatus updateStatus config.LoginAttemptsBeforeLockout
-        let onSuccessfulLogin = clearLockout updateStatus
+        //Partially apply some fns to make the final logic clearer
+        let getUser = dbGetUser |> getUserByEmail 
+        let updateStatus = dbUpdateLoginStatus |> updateLoginStatus  
+        let verifyPassword = (updateStatus, config.LoginAttemptsBeforeLockout) ||> updateLockoutStatus |> checkPassword 
+        let checkIfLockedOut = config.LockoutDurationInMins |> checkLockout 
+        let onSuccessfulLogin = updateStatus |> clearLockout 
+        let createAccessToken = (config, dbInsertNewLogin, onSuccessfulLogin) |||> createLogin 
 
         getUser email
-        |> Result.bind (checkPassword password onInvalidPassword)
-        |> Result.bind (checkLockout config.LockoutDurationInMins)
-        |> Result.bind (createLogin config dbInsertNewLogin onSuccessfulLogin)
+        >>= verifyPassword password 
+        >>= checkIfLockedOut
+        >>= createAccessToken
 
-    let getAuthenticatedUser (dbGetAuthenticatedUser : string -> AuthenticatedUser option) accessToken = 
-        dbGetAuthenticatedUser accessToken
+    let getAuthenticatedUser (dbGetAuthenticatedUser : AccessToken -> AuthenticatedUser option) accessToken = 
+        match dbGetAuthenticatedUser accessToken with 
+        | None -> Error "Invalid access token."
+        | Some user -> Ok user
 
-    let revokeToken (dbRevoke : string -> unit) (accessToken : string) = 
+    let revokeToken (dbRevoke : AccessToken -> unit) accessToken = 
         dbRevoke accessToken

@@ -4,18 +4,19 @@ open System
 open Xunit
 open FsUnit
 open GloomChars.Core
+open GloomChars.Setup
 
 module GloomClassTests = 
 
     [<Fact>]
     let ``There should be 17 classes`` () =
-        GloomService.gloomClasses
+        GameData.gloomClasses
         |> List.length
         |> should equal 17
 
     [<Fact>]
     let ``There should be 6 starting classes`` () =
-        GloomService.gloomClasses
+        GameData.gloomClasses
         |> List.filter (fun c -> c.IsStarting)
         |> List.length
         |> should equal 6
@@ -36,7 +37,7 @@ module GloomClassTests =
             "Ignore negative item effects and add one +1 card"
         ]
 
-        let ghClass = GloomService.gloomClass Brute   
+        let ghClass = GameData.gloomClass Brute   
 
         ghClass.Perks
         |> List.map(fun perk -> PerkService.getText perk.Actions)
@@ -58,7 +59,7 @@ module GloomClassTests =
             "Ignore negative scenario effects"
         ]
 
-        let ghClass = GloomService.gloomClass Tinkerer   
+        let ghClass = GameData.gloomClass Tinkerer   
 
         ghClass.Perks
         |> List.map(fun perk -> PerkService.getText perk.Actions)
@@ -80,7 +81,7 @@ module GloomClassTests =
             "Add one LIGHT DRAW card and add one DARK DRAW card"
         ]
 
-        let ghClass = GloomService.gloomClass Spellweaver   
+        let ghClass = GameData.gloomClass Spellweaver   
 
         ghClass.Perks
         |> List.map(fun perk -> PerkService.getText perk.Actions)
@@ -102,7 +103,7 @@ module GloomClassTests =
             "Ignore negative scenario effects"
         ]
 
-        let ghClass = GloomService.gloomClass Scoundrel   
+        let ghClass = GameData.gloomClass Scoundrel   
 
         ghClass.Perks
         |> List.map(fun perk -> PerkService.getText perk.Actions)
@@ -123,7 +124,7 @@ module GloomClassTests =
             "Ignore negative scenario effects"
         ]
 
-        let ghClass = GloomService.gloomClass Cragheart   
+        let ghClass = GameData.gloomClass Cragheart   
 
         ghClass.Perks
         |> List.map(fun perk -> PerkService.getText perk.Actions)
@@ -146,7 +147,7 @@ module GloomClassTests =
             "Ignore negative scenario effects"
         ]
 
-        let ghClass = GloomService.gloomClass Mindthief   
+        let ghClass = GameData.gloomClass Mindthief   
 
         ghClass.Perks
         |> List.map(fun perk -> PerkService.getText perk.Actions)
@@ -168,7 +169,7 @@ module GloomClassTests =
             "Ignore negative scenario effects"
         ]
 
-        let ghClass = GloomService.gloomClass Sunkeeper   
+        let ghClass = GameData.gloomClass Sunkeeper   
 
         ghClass.Perks
         |> List.map(fun perk -> PerkService.getText perk.Actions)
@@ -189,7 +190,7 @@ module GloomClassTests =
             "Ignore negative item effects and add two +1 cards"
         ]
 
-        let ghClass = GloomService.gloomClass Quartermaster   
+        let ghClass = GameData.gloomClass Quartermaster   
 
         ghClass.Perks
         |> List.map(fun perk -> PerkService.getText perk.Actions)
@@ -210,7 +211,7 @@ module GloomClassTests =
             "Ignore negative item effects and add two +1 cards"
         ]
 
-        let ghClass = GloomService.gloomClass Summoner   
+        let ghClass = GameData.gloomClass Summoner   
 
         ghClass.Perks
         |> List.map(fun perk -> PerkService.getText perk.Actions)
@@ -231,7 +232,7 @@ module GloomClassTests =
             "Ignore negative item effects and add two +1 cards"
         ]
 
-        let ghClass = GloomService.gloomClass Nightshroud   
+        let ghClass = GameData.gloomClass Nightshroud   
 
         ghClass.Perks
         |> List.map(fun perk -> PerkService.getText perk.Actions)
@@ -252,7 +253,7 @@ module GloomClassTests =
             "Ignore negative scenario effects and add one +1 card"
         ]
 
-        let ghClass = GloomService.gloomClass Plagueherald   
+        let ghClass = GameData.gloomClass Plagueherald   
 
         ghClass.Perks
         |> List.map(fun perk -> PerkService.getText perk.Actions)
@@ -273,7 +274,7 @@ module GloomClassTests =
             "Ignore negative item effects"
         ]
 
-        let ghClass = GloomService.gloomClass Berserker   
+        let ghClass = GameData.gloomClass Berserker   
 
         ghClass.Perks
         |> List.map(fun perk -> PerkService.getText perk.Actions)
@@ -296,7 +297,7 @@ module GloomClassTests =
             "Add two CURSE DRAW cards"    
         ]
 
-        let ghClass = GloomService.gloomClass Soothsinger   
+        let ghClass = GameData.gloomClass Soothsinger   
 
         ghClass.Perks
         |> List.map(fun perk -> PerkService.getText perk.Actions)
@@ -317,7 +318,7 @@ module GloomClassTests =
             "Ignore negative scenario effects"  
         ]
 
-        let ghClass = GloomService.gloomClass Doomstalker   
+        let ghClass = GameData.gloomClass Doomstalker   
 
         ghClass.Perks
         |> List.map(fun perk -> PerkService.getText perk.Actions)
@@ -337,7 +338,7 @@ module GloomClassTests =
             "Add one REFRESH AN ITEM card"     
         ]
 
-        let ghClass = GloomService.gloomClass Sawbones   
+        let ghClass = GameData.gloomClass Sawbones   
 
         ghClass.Perks
         |> List.map(fun perk -> PerkService.getText perk.Actions)
@@ -361,7 +362,7 @@ module GloomClassTests =
             "Add one ADD TARGET card"
         ]
 
-        let ghClass = GloomService.gloomClass Elementalist   
+        let ghClass = GameData.gloomClass Elementalist   
 
         ghClass.Perks
         |> List.map(fun perk -> PerkService.getText perk.Actions)
@@ -380,7 +381,7 @@ module GloomClassTests =
             "Ignore negative scenario effects"
         ]
 
-        let ghClass = GloomService.gloomClass BeastTyrant   
+        let ghClass = GameData.gloomClass BeastTyrant   
 
         ghClass.Perks
         |> List.map(fun perk -> PerkService.getText perk.Actions)

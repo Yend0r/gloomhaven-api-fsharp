@@ -1,50 +1,48 @@
 ﻿namespace GloomChars.Api
 
-[<RequireQualifiedAccess>]
-module ControllerUtils = 
+module RequestHandlers = 
     open System
     open Giraffe
     open Microsoft.AspNetCore.Http
     open FSharp.Control.Tasks.ContextInsensitive
     open Microsoft.Extensions.Configuration
 
-    let get (ctrlrFun : HttpHandler) : HttpHandler = 
+    let get (ctrlrFun : HttpContext -> HttpHandler) : HttpHandler = 
         fun (next : HttpFunc) (ctx : HttpContext) ->
             task {
                 let config = ctx.GetService<IConfiguration>()
-                let rsp = ctrlrFun
+                let rsp = ctrlrFun ctx
                 return! rsp next ctx
             }
 
-    let getWithArgs (ctrlrFun : 'T -> HttpHandler) (args : 'T) : HttpHandler = 
+    let getWithArgs (ctrlrFun : HttpContext -> 'T -> HttpHandler) (args : 'T) : HttpHandler = 
         fun (next : HttpFunc) (ctx : HttpContext) ->
             task {
                 let config = ctx.GetService<IConfiguration>()
-                let rsp = ctrlrFun args
+                let rsp = ctrlrFun ctx args
                 return! rsp next ctx
             }
 
-    let post (ctrlrFun : 'TJson -> HttpHandler) : HttpHandler = 
+    let post (ctrlrFun : HttpContext -> 'TJson -> HttpHandler) : HttpHandler = 
         fun (next : HttpFunc) (ctx : HttpContext) ->
             task {
                 let! jsonContent = ctx.BindJsonAsync<'TJson>()
-                let rsp = ctrlrFun jsonContent 
+                let rsp = ctrlrFun ctx jsonContent 
                 return! rsp next ctx
             }
 
-    let postWithArgs (ctrlrFun : 'TJson -> 'TArgs -> HttpHandler) (args : 'TArgs) : HttpHandler = 
+    let postWithArgs (ctrlrFun : HttpContext -> 'TJson -> 'TArgs -> HttpHandler) (args : 'TArgs) : HttpHandler = 
         fun (next : HttpFunc) (ctx : HttpContext) ->
             task {
                 let! jsonContent = ctx.BindJsonAsync<'TJson>()
-                let rsp = ctrlrFun jsonContent args 
+                let rsp = ctrlrFun ctx jsonContent args 
                 return! rsp next ctx
             }
 
-    let delete (ctrlrFun : 'TJson -> HttpHandler) : HttpHandler = 
+    let delete (ctrlrFun : HttpContext -> HttpHandler) : HttpHandler = 
         fun (next : HttpFunc) (ctx : HttpContext) ->
             task {
-                let! jsonContent = ctx.BindJsonAsync<'TJson>()
-                let rsp = ctrlrFun jsonContent 
+                let rsp = ctrlrFun ctx 
                 return! rsp next ctx
             }
 

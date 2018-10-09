@@ -1,39 +1,59 @@
-﻿namespace GloomChars.Core
+﻿namespace GloomChars.Setup
 
-module GloomService = 
-    open DeckService 
+open GloomChars.Core
 
-    // Some helper methods...
+type NewPerk = 
+    {
+        Quantity : int 
+        Actions  : PerkAction list
+    }
+
+type NewGloomClass = 
+    {
+        ClassName  : GloomClassName
+        Name       : string
+        Symbol     : string
+        IsStarting : bool
+        Perks      : NewPerk list
+    }
+
+[<RequireQualifiedAccess>]
+module GameData = 
+
+
+    let modCard action dmg (drawAction : DrawAction) = 
+        let drawAnother = if drawAction=Draw then true else false
+        { DrawAnother=drawAnother; Reshuffle=false; Action=action; Damage=dmg }
 
     let makePerkCard numCards card = 
         { NumCards = numCards; Card = card; }
 
-    let private Push amnt = Push (PushAmount amnt)
-    let private Pull amnt = Pull (PullAmount amnt)
-    let private Pierce amnt = Pierce (PierceAmount amnt)
-    let private Heal amnt = Heal (HealAmount amnt)
-    let private Shield amnt = Shield (ShieldAmount amnt)
+    let Push amnt = Push (PushAmount amnt)
+    let Pull amnt = Pull (PullAmount amnt)
+    let Pierce amnt = Pierce (PierceAmount amnt)
+    let Heal amnt = Heal (HealAmount amnt)
+    let Shield amnt = Shield (ShieldAmount amnt)
 
-    let private remove numCards action dmg draw = 
+    let remove numCards action dmg draw = 
         RemoveCard (makePerkCard numCards (modCard action dmg draw)) 
 
-    let private add numCards action dmg draw = 
+    let add numCards action dmg draw = 
         AddCard (makePerkCard numCards (modCard action dmg draw))
 
-    let private makePerk qty actions = 
+    let makePerk qty actions = 
         { Quantity = qty; Actions = actions; }
 
-    let private makeClass className name symbol isStarting perks = 
+    let makeClass className name symbol isStarting perks = 
         { 
             ClassName = className
             Name = name
             Symbol = symbol
             IsStarting = isStarting
-            Perks = perks 
+            Perks = perks
         }
 
     // This will get cached after the first call 
-    let gloomClasses : GloomClass list = 
+    let gloomClasses : NewGloomClass list = 
         [
             makeClass Brute "Inox Brute" "Horns" true
                 [
