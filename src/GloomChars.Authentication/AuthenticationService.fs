@@ -34,7 +34,7 @@ module AuthenticationService =
     let private shouldUnlock (dateLockedOut : DateTime) lockoutDuration = 
         lockoutDuration = 0 || dateLockedOut.AddMinutes(float lockoutDuration) < DateTime.UtcNow
 
-    let private checkLockout (lockoutDuration : int) (user : User) = 
+    let private checkLockout (lockoutDuration : int) (user : PreAuthUser) = 
         match user.LockedOutStatus with
         | LockedOut dateLockedOut -> 
             if shouldUnlock dateLockedOut lockoutDuration then
@@ -48,7 +48,7 @@ module AuthenticationService =
         | NotLockedOut -> 
             Ok user
 
-    let private checkPassword (onInvalidPwd : User -> unit) password (user : User) = 
+    let private checkPassword (onInvalidPwd : PreAuthUser -> unit) password (user : PreAuthUser) = 
         //If we got a user then always do the password check to hamper time based attacks
         let passwordVerified = PasswordHasher.verifyHashedPassword(user.Email, user.PasswordHash, password)
 
@@ -64,7 +64,7 @@ module AuthenticationService =
         (config : AuthenticationConfig) 
         (dbInsertNewLogin : NewLogin -> Result<int, string>)
         (onSuccessfulLogin : int -> unit)
-        (user : User) = 
+        (user : PreAuthUser) = 
 
         //Log them in
         let newLogin = 
@@ -87,8 +87,8 @@ module AuthenticationService =
         let fakePwd = Guid.NewGuid().ToString() |> Encoding.UTF8.GetBytes |> Convert.ToBase64String
         PasswordHasher.verifyHashedPassword("", fakePwd, "") |> ignore
 
-    let private getUserByEmail dbGetUser email = 
-        match dbGetUser email with 
+    let private getUserByEmail dbGetUserForAuth email = 
+        match dbGetUserForAuth email with 
         | None -> 
             //No such user... do a fake password check (to take the same time as a real email) 
             //so attackers cannot tell that the email doesn't exist. Although this is probably 
@@ -100,14 +100,14 @@ module AuthenticationService =
 
     let authenticate 
         (config : AuthenticationConfig)
-        (dbGetUser : string -> User option)
+        (dbGetUserForAuth : string -> PreAuthUser option)
         (dbUpdateLoginStatus : LoginStatusUpdate -> unit)
         (dbInsertNewLogin : NewLogin -> Result<int, string>)
         (email : string)
         (password : string) = 
 
         //Partially apply some fns to make the final logic clearer
-        let getUser = dbGetUser |> getUserByEmail 
+        let getUser = dbGetUserForAuth |> getUserByEmail 
         let updateStatus = dbUpdateLoginStatus |> updateLoginStatus  
         let verifyPassword = (updateStatus, config.LoginAttemptsBeforeLockout) ||> updateLockoutStatus |> checkPassword 
         let checkIfLockedOut = config.LockoutDurationInMins |> checkLockout 

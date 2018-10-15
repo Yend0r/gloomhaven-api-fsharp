@@ -6,13 +6,11 @@ module UserService =
     open GloomChars.Common
 
     let private validateInput (newUser : NewUser) = 
-
-        let errors = 
-            Validation.validateEmail newUser.Email []
-            |> Validation.validatePassword newUser.Password
-        match errors with
+        Validation.validateEmail newUser.Email []
+        |> Validation.validatePassword newUser.Password
+        |> function
         | [] -> Ok newUser
-        | _ -> Error (Validation.errorsToString errors)
+        | errors -> Error (Validation.errorsToString errors)
 
     let private checkIfEmailExists dbGetUser (newUser : NewUser) = 
         match (dbGetUser newUser.Email) with
@@ -27,9 +25,10 @@ module UserService =
         (dbInsertNewUser : string -> string -> Result<int, string>)
         (newUser : NewUser) = 
 
-        //validateInput newUser
-        //>>= (checkIfEmailExists dbGetUser)
-        //>>= hashPassword 
-        //>>= (dbInsertNewUser newUser.Email) 
+        validateInput newUser
+        >>= (checkIfEmailExists dbGetUser)
+        >>= hashPassword 
+        >>= (dbInsertNewUser newUser.Email) 
 
-        Ok 42
+    let getUsers (dbGetUsers : unit -> User list) () : User list = 
+        dbGetUsers()

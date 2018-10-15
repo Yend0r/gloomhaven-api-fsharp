@@ -2,9 +2,9 @@
 
 module GameData = 
     open System
-    open Microsoft.FSharp.Reflection
-
-    //
+    open GloomChars.Common
+    open FSharpPlus
+    
     // Game data is hard coded here. 
     // It will only change if the game gets an update.
     //
@@ -297,7 +297,12 @@ module GameData =
                 ]
         ]
 
-    let gloomClass className = 
+    let gloomClass (name : GloomClassName) = 
         gloomClasses 
-        |> List.find (fun c -> c.ClassName = className)
+        |> List.find (fun c -> c.ClassName = name)
+
+    let getGloomClass className : GloomClass option = 
+        className
+        |> GloomClassName.fromString 
+        |> map gloomClass
         

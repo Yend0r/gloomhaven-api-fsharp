@@ -9,6 +9,7 @@ module Utils =
         | case, _ -> case.Name
 
     let unionFromString<'a> (s : string) =
-        match FSharpType.GetUnionCases typeof<'a> |> Array.filter (fun case -> case.Name = s) with
+        match FSharpType.GetUnionCases typeof<'a> |> Array.filter (fun case -> case.Name.ToUpper() = s.ToUpper()) with
         | [|case|] -> Some(FSharpValue.MakeUnion(case, [||]) :?> 'a)
         | _ -> None
+

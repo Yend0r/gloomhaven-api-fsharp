@@ -3,6 +3,7 @@
 open System
 open GloomChars.Common
 open GloomChars.Common.QueryUtils
+open FSharpPlus
 
 [<RequireQualifiedAccess>]
 module internal AuthenticationSql = 
@@ -45,6 +46,7 @@ module internal AuthenticationSql =
             [
                 p "user_id" newLogin.UserId
                 p "access_token" token
+                p "date_created" DateTime.Now
                 p "date_expires" newLogin.AccessTokenExpiresAt
             ]
 
@@ -96,19 +98,7 @@ module internal AuthenticationSql =
 [<RequireQualifiedAccess>]
 module AuthenticationRepository = 
 
-    let private mapToUser (dbUser : DbUser) = 
-        let lockedOutStatus =
-            match (dbUser.IsLockedOut, dbUser.DateLockedOut) with
-            | (true, Some dt) -> 
-                LockedOut dt
-            | (true, None) ->
-                //This would mean that the db is in an invalid state (perhaps the db design can change to make this impossible?).
-                //Nevertheless, have to deal it because F# forces the code to account for all possible states.
-                //Could add code to update the db in case this happens, but that would be overegineering at this point.
-                LockedOut DateTime.UtcNow 
-            | (false, _) ->
-                NotLockedOut
-
+    let private mapToPreAuthUser (dbUser : DbPreAuthUser) = 
         { 
             Id = dbUser.Id
             Email = dbUser.Email
@@ -116,21 +106,28 @@ module AuthenticationRepository =
             LoginAttemptNumber = dbUser.LoginAttemptNumber
             DateCreated = dbUser.DateCreated
             DateUpdated = dbUser.DateUpdated
-            LockedOutStatus = lockedOutStatus
+            LockedOutStatus = LockedOutStatus.fromDb(dbUser.IsLockedOut, dbUser.DateLockedOut)
         }
 
-    let getUserByEmail (dbContext : IDbContext) (email : string) : User option = 
+    let private mapToAuthenticatedUser (dbUser : DbAuthenticatedUser) = 
+        { 
+            Id = dbUser.Id
+            Email = dbUser.Email
+            AccessToken = AccessToken dbUser.AccessToken
+            AccessTokenExpiresAt = dbUser.AccessTokenExpiresAt
+            IsSystemAdmin = dbUser.IsSystemAdmin
+        }
+
+    let getUserForAuth (dbContext : IDbContext) (email : string) : PreAuthUser option = 
         AuthenticationSql.getUserByEmail email
-        |> dbContext.Query<DbUser>
+        |> dbContext.Query<DbPreAuthUser>
         |> Array.tryHead
-        |> Option.map mapToUser
+        |> map mapToPreAuthUser
 
     let insertNewLogin (dbContext : IDbContext) (newLogin : NewLogin) = 
-        let result =
-            AuthenticationSql.insertNewLogin newLogin
-            |> dbContext.TryExecuteScalar
-
-        match result with 
+        AuthenticationSql.insertNewLogin newLogin
+        |> dbContext.TryExecuteScalar
+        |> function
         | Success loginId -> 
             Ok loginId
         | UniqueConstraintError _ ->
@@ -144,8 +141,9 @@ module AuthenticationRepository =
     let getAuthenticatedUser (dbContext : IDbContext) accessToken = 
         let (AccessToken token) = accessToken
         AuthenticationSql.getAuthenticatedUser token
-        |> dbContext.Query<AuthenticatedUser>
+        |> dbContext.Query<DbAuthenticatedUser>
         |> Array.tryHead
+        |> map mapToAuthenticatedUser
 
     let revokeToken (dbContext : IDbContext) accessToken = 
         let (AccessToken token) = accessToken

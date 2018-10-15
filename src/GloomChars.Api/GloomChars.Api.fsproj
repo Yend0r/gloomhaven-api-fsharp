@@ -11,13 +11,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config.fs" />
-    <Compile Include="CompositionRoot.fs" />
     <Compile Include="ResponseHandlers.fs" />
     <Compile Include="RequestHandlers.fs" />
+    <Compile Include="CompositionRoot.fs" />
     <Compile Include="WebAuthentication.fs" />
-    <Compile Include="Controllers\UsersController.fs" />
     <Compile Include="Controllers\AuthenticationController.fs" />
     <Compile Include="Controllers\DefaultController.fs" />
+    <Compile Include="Controllers\AdminController.fs" />
+    <Compile Include="Controllers\GameDataController.fs" />
+    <Compile Include="Controllers\CharactersController.fs" />
+    <Compile Include="Routing.fs" />
     <Compile Include="Program.fs" />
     <None Include="web.config" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="WebRoot\main.css" />
@@ -31,6 +34,6 @@
     <ProjectReference Include="..\GloomChars.Core\GloomChars.Core.fsproj" />
     <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.*" />
     <PackageReference Include="FSharpPlus" Version="1.0.0" />
-    <PackageReference Include="Giraffe" Version="2.0.*" />
+    <PackageReference Include="Giraffe" Version="3.2.0" />
   </ItemGroup>
 </Project>

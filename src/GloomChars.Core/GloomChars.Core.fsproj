@@ -5,9 +5,10 @@
   <ItemGroup>
     <Compile Include="Types.fs" />
     <Compile Include="GameData.fs" />
-    <Compile Include="CharacterRepository.fs" />
+    <Compile Include="CharactersRepository.fs" />
     <Compile Include="DeckService.fs" />
     <Compile Include="PerkService.fs" />
+    <Compile Include="CharactersService.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\GloomChars.Common\GloomChars.Common.fsproj" />

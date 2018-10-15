@@ -3,6 +3,11 @@
 module ResponseHandlers = 
     open Giraffe
 
+    type AppError = 
+        | Msg of string
+        | NotFound
+        | Unauthorized of string
+
     type ApiError =
         {
             Title  : string
@@ -35,6 +40,15 @@ module ResponseHandlers =
             Data : 'T
         }
 
+    let optionToAppResult opt = 
+        match opt with
+        | Some c -> Ok c
+        | None -> Error NotFound
+
+    let toAppResult (result : Result<'a,string>) : Result<'a,AppError> = 
+        result 
+        |> Result.mapError Msg
+
     let wrapData data = { Data = data }
 
     let jsonList data = json (wrapData data)
@@ -44,6 +58,13 @@ module ResponseHandlers =
     let toMessage msg = { Message = msg }
 
     let SUCCESS msg = json (toMessage msg)
+
+    let SUCCESS_201 location = 
+        setHttpHeader "Location" location
+        >=> setStatusCode 201
+
+    let SUCCESS_204 = 
+        Successful.NO_CONTENT
 
     let BAD_REQUEST title detail = 
         setStatusCode 400 
@@ -65,27 +86,28 @@ module ResponseHandlers =
         setStatusCode 500 
         >=> json (createApiError title detail)
 
-    let mapResultToJson result f errorMsg = 
-        match result with 
-        | Ok x -> json (f x)
-        | Error error -> BAD_REQUEST errorMsg error
+    let private appErrorToResponse errorMsg appError = 
+        match appError with
+        | Msg err -> BAD_REQUEST errorMsg err
+        | NotFound -> NOT_FOUND errorMsg 
+        | Unauthorized err -> UNAUTHORIZED err 
 
     let resultToJson errorMsg result = 
         match result with 
         | Ok x -> json x
-        | Error error -> BAD_REQUEST errorMsg error
+        | Error error -> error |> appErrorToResponse errorMsg
 
-    let resultToSuccess successMsg errorMsg result = 
+    let resultToJsonList result = 
         match result with 
-        | Ok x -> SUCCESS successMsg
-        | Error error -> BAD_REQUEST errorMsg error
-        
-    let mapOptionToJson opt f errorMsg = 
-        match opt with 
-        | Some x -> json (f x)
-        | None -> NOT_FOUND errorMsg 
+        | Ok x -> jsonList x
+        | Error error -> error |> appErrorToResponse ""
 
-    let optionToJson opt errorMsg = 
-        match opt with 
-        | Some x -> json x
-        | None -> NOT_FOUND errorMsg 
+    let resultToSuccessNoContent errorMsg result = 
+        match result with 
+        | Ok location -> SUCCESS_204 
+        | Error error -> error |> appErrorToResponse errorMsg
+
+    let resultToResourceLocation errorMsg result = 
+        match result with 
+        | Ok location -> SUCCESS_201 location
+        | Error error -> error |> appErrorToResponse errorMsg

@@ -11,5 +11,7 @@
     <Compile Include="Utils.fs" />
     <PackageReference Include="Dapper" Version="1.50.5" />
     <PackageReference Include="Npgsql" Version="4.0.3" />
+    <Compile Include="JsonUtils.fs" />
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
   </ItemGroup>
 </Project>

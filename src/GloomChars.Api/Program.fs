@@ -8,24 +8,9 @@ open Microsoft.AspNetCore.Hosting
 open Microsoft.Extensions.Logging
 open Microsoft.Extensions.DependencyInjection
 open Giraffe
+open Giraffe.Serialization
 open GloomChars.Common
-open WebAuthentication
-
-// ---------------------------------
-// Web app
-// ---------------------------------
-
-let webApp =
-    choose [
-        routeStartsWithCi "/authentication" >=> AuthenticationRoutes.router
-        requiresAuthenticatedUser >=> routeStartsWithCi "/users" >=> UsersRoutes.router
-            
-        GET >=>
-            choose [
-                route "/" >=> DefaultController.indexHandler()
-            ]
-        setStatusCode 404 >=> text "Not Found" 
-    ]
+open BearerTokenAuth
 
 // ---------------------------------
 // Error handler
@@ -44,20 +29,28 @@ let configureCors (builder : CorsPolicyBuilder) =
            .AllowAnyMethod()
            .AllowAnyHeader()
            |> ignore
-
+           
 let configureApp (app : IApplicationBuilder) =
     let env = app.ApplicationServices.GetService<IHostingEnvironment>()
     (match env.IsDevelopment() with
     | true  -> app.UseDeveloperExceptionPage()
     | false -> app.UseGiraffeErrorHandler errorHandler)
+        .UseAuthentication()
         .UseHttpsRedirection()
         .UseCors(configureCors)
         .UseStaticFiles()
-        .UseGiraffe(webApp)
+        .UseGiraffe(Routing.router)
 
 let configureServices (services : IServiceCollection) =
     services.AddCors()    
             .AddGiraffe() 
+            .AddAuthentication(BearerTokenAuth.authenticationOptions)
+            .AddBearerTokenAuth(fun _ -> ())
+            |> ignore
+
+    // Use custom json serialiser settings for option types and null handling
+    let customSettings = JsonUtils.jsonSerializerSettings
+    services.AddSingleton<IJsonSerializer>(NewtonsoftJsonSerializer(customSettings)) 
             |> ignore
 
 let configureLogging (builder : ILoggingBuilder) =

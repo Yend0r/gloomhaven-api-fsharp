@@ -44,17 +44,30 @@ module Validation =
         |> List.tryFind (fun p ->   
             (pwd = p || (pwd.StartsWith(p) && (lengthDiff pwd p) <= 4)))
 
-    let checkPasswordRules (password : string) validationErrors : ValidationError list = 
+    let makeValidationError prop msg = 
+        { Property = prop; Message = msg }
+
+    let private checkPasswordRules (password : string) validationErrors : ValidationError list = 
         if password.Length < 6 then
-            { Property = "Password"; Message = "Password must be greater than 6 characters." } :: validationErrors
+            makeValidationError "Password" "Password must be greater than 6 characters." :: validationErrors
         elif (isCommonPassword password).IsSome then
-            { Property = "Password"; Message = "Password is too weak." } :: validationErrors
+            makeValidationError "Password" "Password is too weak." :: validationErrors
         else 
             validationErrors
 
+    let validateNonZeroPositiveInt (intVal : int, propName : string) validationErrors : ValidationError list =
+        if intVal <= 0 
+        then makeValidationError propName (sprintf "%s must be a non-zero, positive integer." propName) :: validationErrors
+        else validationErrors
+
+    let validatePositiveInt (intVal : int, propName : string) validationErrors : ValidationError list =
+        if intVal < 0 
+        then makeValidationError propName (sprintf "%s must be a positive integer." propName) :: validationErrors
+        else validationErrors
+
     let validateRequiredString (str : string, propName : string) validationErrors : ValidationError list =
         match String.IsNullOrWhiteSpace(str) with
-        | true -> { Property = propName; Message = (sprintf "%s is required." propName) } :: validationErrors 
+        | true -> makeValidationError propName (sprintf "%s is required." propName) :: validationErrors
         | false -> validationErrors
 
     let validatePassword (password : string) validationErrors : ValidationError list = 
@@ -65,7 +78,7 @@ module Validation =
         try
             let _mailTest = new MailAddress(email)
             validationErrors
-        with _ -> { Property = "Email"; Message = (sprintf "Invalid email address: %s" email) } :: validationErrors
+        with _ -> makeValidationError "Email" (sprintf "Invalid email address: %s" email) :: validationErrors
 
     let errorsToString (validationErrors : ValidationError list) = 
         List.map (fun e -> e.Message) validationErrors |> (String.concat " ")

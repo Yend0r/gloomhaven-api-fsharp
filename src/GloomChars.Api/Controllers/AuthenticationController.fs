@@ -3,7 +3,7 @@
 module AuthenticationController = 
     open System
     open Giraffe
-    open FSharp.Control.Tasks.ContextInsensitive
+    open Microsoft.AspNetCore.Http
     open GloomChars.Authentication
     open CompositionRoot
     open FSharpPlus
@@ -17,16 +17,10 @@ module AuthenticationController =
         }
 
     [<CLIMutable>]
-    type ForgotPasswordRequest =
+    type ChangePasswordRequest =
         {
-            Email : string
-        }
-
-    [<CLIMutable>]
-    type PasswordResetRequest =
-        {
+            OldPassword : string
             NewPassword : string
-            ResetToken  : string
         }
 
     type LoginResponse =
@@ -34,12 +28,6 @@ module AuthenticationController =
             Email                : string
             AccessToken          : string
             AccessTokenExpiresAt : DateTime
-        }
-
-    type ForgotPasswordResponse =
-        {
-            ResetToken     : string
-            TokenExpiresAt : DateTime
         }
 
     let private createLoginResponse (user : AuthenticatedUser) : LoginResponse = 
@@ -50,46 +38,20 @@ module AuthenticationController =
             AccessTokenExpiresAt = user.AccessTokenExpiresAt
         }
 
-    let private createForgotPasswordResponse resetToken tokenExpiresAt : ForgotPasswordResponse = 
-        {
-            ResetToken     = resetToken
-            TokenExpiresAt = tokenExpiresAt
-        }
-
     let login ctx (loginRequest : LoginRequest) : HttpHandler = 
         AuthenticationSvc.authenticate loginRequest.Email loginRequest.Password
         >>= AuthenticationSvc.getAuthenticatedUser
         |> map createLoginResponse
         |> resultToJson "Invalid email/password"
 
-    let logout ctx : HttpHandler = 
-        WebAuthentication.getAccessToken ctx
+    let logout (ctx : HttpContext) : HttpHandler = 
+        ctx
+        |> WebAuthentication.getLoggedInUser 
+        |> map (fun u -> u.AccessToken)
         |> map AuthenticationSvc.revokeToken
-        |> map (fun _ -> toMessage "Logged out")
-        |> resultToJson "Logout failed. No credentials supplied."
+        |> resultToSuccessNoContent "Logout failed. No credentials supplied."
 
-    let sendPasswordResetEmail ctx (forgotPasswordRequest : ForgotPasswordRequest) : HttpHandler = 
+    let changePassword ctx (changePasswordRequest : ChangePasswordRequest) : HttpHandler = 
         BAD_REQUEST "Not implemented" ""
 
-    let passwordReset ctx (passwordResetRequest : PasswordResetRequest) : HttpHandler = 
-        BAD_REQUEST "Not implemented" ""
 
-module AuthenticationRoutes =
-    open Giraffe
-    open RequestHandlers
-    open AuthenticationController 
-    open WebAuthentication
-
-    let router : HttpHandler =  
-        choose [
-            POST >=>
-                choose [
-                    postCi "/authentication/login" login
-                    postCi "/authentication/forgotpassword" sendPasswordResetEmail
-                    postCi "/authentication/resetpassword" passwordReset
-                ]
-            DELETE >=>
-                choose [
-                    requiresAuthenticatedUser >=>  deleteCi "/authentication/logout" logout 
-                ]
-        ]

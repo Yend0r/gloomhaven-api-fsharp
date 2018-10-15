@@ -100,10 +100,7 @@ type GloomClassName =
     | BeastTyrant
     with
         override this.ToString() = Utils.unionToString this
-        static member fromString s = 
-            match Utils.unionFromString<GloomClassName> s with
-            | Some name -> name
-            | None -> raise (new Exception("Invalid Gloomhaven class name")) //Bad data... need to manually fix
+        static member fromString s = Utils.unionFromString<GloomClassName> s 
 
 type GloomClass = 
     {
@@ -131,9 +128,6 @@ type NewCharacter =
         UserId       : int
         Name         : string
         ClassName    : GloomClassName
-        Experience   : int
-        Gold         : int
-        Achievements : int
     }
 
 type CharacterUpdate = 
@@ -141,11 +135,10 @@ type CharacterUpdate =
         Id           : int
         UserId       : int
         Name         : string
-        ClassName    : GloomClassName
         Experience   : int
         Gold         : int
         Achievements : int
-        PerkIds      : int list
+        PerkIds      : string list
     }
 
 //--------------------------------------------
