@@ -7,7 +7,11 @@
     <EnableDefaultContentItems>false</EnableDefaultContentItems>
   </PropertyGroup>
   <ItemGroup>
-    <Folder Include="Controllers\" />
+    <Folder Include="Default\" />
+    <Folder Include="Authentication\" />
+    <Folder Include="Admin\" />
+    <Folder Include="GameData\" />
+    <Folder Include="Characters\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config.fs" />
@@ -15,12 +19,18 @@
     <Compile Include="RequestHandlers.fs" />
     <Compile Include="CompositionRoot.fs" />
     <Compile Include="WebAuthentication.fs" />
-    <Compile Include="Controllers\AuthenticationController.fs" />
-    <Compile Include="Controllers\DefaultController.fs" />
-    <Compile Include="Controllers\AdminController.fs" />
-    <Compile Include="Controllers\GameDataController.fs" />
-    <Compile Include="Controllers\CharacterEditController.fs" />
-    <Compile Include="Controllers\CharacterReadController.fs" />
+    <Compile Include="BearerTokenAuth.fs" />
+    <Compile Include="Default\DefaultController.fs" />
+    <Compile Include="Authentication\AuthenticationModels.fs" />
+    <Compile Include="Authentication\AuthenticationController.fs" />
+    <Compile Include="Admin\AdminModels.fs" />
+    <Compile Include="Admin\AdminController.fs" />
+    <Compile Include="GameData\GameDataModels.fs" />
+    <Compile Include="GameData\GameDataController.fs" />
+    <Compile Include="Characters\CharacterEditModels.fs" />
+    <Compile Include="Characters\CharacterReadModels.fs" />
+    <Compile Include="Characters\CharacterEditController.fs" />
+    <Compile Include="Characters\CharacterReadController.fs" />
     <Compile Include="Routing.fs" />
     <Compile Include="Program.fs" />
     <None Include="web.config" CopyToOutputDirectory="PreserveNewest" />
@@ -31,10 +41,10 @@
     <None Include="appsettings.Production.json" />
     <None Include="appsettings.Development.json" />
     <PackageReference Include="FSharpPlus" Version="1.0.0" />
-    <ProjectReference Include="..\GloomChars.Authentication\GloomChars.Authentication.fsproj" />
-    <ProjectReference Include="..\GloomChars.Common\GloomChars.Common.fsproj" />
     <ProjectReference Include="..\GloomChars.Core\GloomChars.Core.fsproj" />
+    <ProjectReference Include="..\GloomChars.Common\GloomChars.Common.fsproj" />
     <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.*" />
+    <ProjectReference Include="..\GloomChars.Authentication\GloomChars.Authentication.fsproj" />
     <PackageReference Include="Giraffe" Version="3.2.0" />
   </ItemGroup>
 </Project>
