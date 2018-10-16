@@ -117,6 +117,7 @@ type GloomClass =
 type Character = 
     { 
         Id           : CharacterId
+        UserId       : UserId
         Name         : string
         ClassName    : GloomClassName
         Experience   : int
@@ -164,6 +165,7 @@ type CharacterUpdate =
 type DbCharacter = 
     { 
         Id           : int
+        UserId       : int
         Name         : string
         ClassName    : string
         Experience   : int

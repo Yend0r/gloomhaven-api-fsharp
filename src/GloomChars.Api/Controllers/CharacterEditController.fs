@@ -28,28 +28,65 @@ module CharacterEditModels =
             Perks        : PerkRequest list
         }
 
-    let toNewCharacter (character : NewCharacterRequest) (gloomClass : GloomClassName) (userId : int) = 
+    [<CLIMutable>]
+    type CharacterPatchRequest = 
         {
-            UserId    = UserId userId
+            Name         : string option
+            Experience   : int option
+            Gold         : int option
+            Achievements : int option
+            Perks        : PerkRequest list option
+        }
+
+    let toNewCharacter (character : NewCharacterRequest) (gloomClass : GloomClassName) (userId : UserId) = 
+        {
+            UserId    = userId
             Name      = character.Name
             ClassName = gloomClass
         }
 
-    let toPerkUpdate (perk : PerkRequest) : PerkUpdate = 
+    let perkRequestToUpdate (perk : PerkRequest) : PerkUpdate = 
         { 
             Id = perk.Id
             Quantity = perk.Quantity
         }
 
-    let toCharacterUpdate (characterId : int) (character : CharacterUpdateRequest) (userId : int) = 
+    let perkToUpdate (perk : Perk) : PerkUpdate = 
+        { 
+            Id = perk.Id
+            Quantity = perk.Quantity
+        }
+
+    let toCharacterUpdate (characterId : int) (character : CharacterUpdateRequest) (userId : UserId) = 
         {
             Id           = CharacterId characterId
-            UserId       = UserId userId
+            UserId       = userId
             Name         = character.Name
             Experience   = character.Experience
             Gold         = character.Gold
             Achievements = character.Achievements
-            Perks        = character.Perks |> List.map toPerkUpdate
+            Perks        = character.Perks |> List.map perkRequestToUpdate
+        }
+
+    let mapPatchToUpdate (patch : CharacterPatchRequest) (character : Character) = 
+        let getPatchProp (patchOptionVal : 'a option) (existingVal : 'a) = 
+            match patchOptionVal with
+            | Some patchVal -> patchVal
+            | None -> existingVal
+
+        let perks = 
+            match patch.Perks with
+            | Some patchPerks -> patchPerks |> List.map perkRequestToUpdate
+            | None -> character.Perks |> List.map perkToUpdate
+
+        {
+            Id           = character.Id
+            UserId       = character.UserId
+            Name         = getPatchProp patch.Name character.Name
+            Experience   = getPatchProp patch.Experience character.Experience
+            Gold         = getPatchProp patch.Gold character.Gold
+            Achievements = getPatchProp patch.Achievements character.Achievements
+            Perks        = perks
         }
 
 module CharacterEditController = 
@@ -101,9 +138,19 @@ module CharacterEditController =
         <*> (WebAuthentication.getLoggedInUserId ctx)
         >>= CharactersSvc.updateCharacter 
         |> toSuccessNoContent "Failed to update character."
+        
+    let patchCharacter (ctx : HttpContext) (patch : CharacterPatchRequest) (characterId : int) = 
+        let character = 
+            WebAuthentication.getLoggedInUserId ctx
+            >>= CharactersSvc.getCharacter (CharacterId characterId)
+
+        Ok (mapPatchToUpdate patch)
+        <*> character
+        >>= CharactersSvc.updateCharacter 
+        |> toSuccessNoContent "Failed to patch character."
 
     let deleteCharacter (ctx : HttpContext) (characterId : int) : HttpHandler = 
         WebAuthentication.getLoggedInUserId ctx
-        |> map UserId
         |> map (CharactersSvc.deleteCharacter (CharacterId characterId))
         |> toSuccessNoContent "Delete failed."
+

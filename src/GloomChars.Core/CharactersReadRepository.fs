@@ -31,6 +31,7 @@ module internal CharactersReadSql =
         sql
             """
             SELECT id        AS Id,
+                user_id      AS UserId,
                 name         AS Name,
                 class_name   AS ClassName,
                 experience   AS Experience,
@@ -71,9 +72,9 @@ module CharactersReadRepository =
         | Some p -> Some { p with Quantity = dbPerk.Quantity }
         | None -> None
 
-    let private mapToCharacter (dbPerks : DbCharacterPerk []) (dbCharater : DbCharacter) : Character = 
+    let private mapToCharacter (dbPerks : DbCharacterPerk []) (dbCharacter : DbCharacter) : Character = 
 
-        let className = getGloomClassName dbCharater.Id dbCharater.ClassName
+        let className = getGloomClassName dbCharacter.Id dbCharacter.ClassName
 
         let allPerks = (GameData.gloomClass className).Perks
 
@@ -83,12 +84,13 @@ module CharactersReadRepository =
             |> List.choose (fun p -> toPerk allPerks p) 
 
         { 
-            Id = CharacterId dbCharater.Id
-            Name = dbCharater.Name
-            ClassName = getGloomClassName dbCharater.Id dbCharater.ClassName
-            Experience = dbCharater.Experience
-            Gold = dbCharater.Gold
-            Achievements = dbCharater.Achievements
+            Id = CharacterId dbCharacter.Id
+            UserId = UserId dbCharacter.UserId
+            Name = dbCharacter.Name
+            ClassName = getGloomClassName dbCharacter.Id dbCharacter.ClassName
+            Experience = dbCharacter.Experience
+            Gold = dbCharacter.Gold
+            Achievements = dbCharacter.Achievements
             Perks = perks
         }
 

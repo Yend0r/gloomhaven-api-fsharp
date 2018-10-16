@@ -5,15 +5,14 @@ open Microsoft.AspNetCore.Http
 open Microsoft.AspNetCore.Authentication
 open System.Threading.Tasks
 open System.Security.Claims
-open System.Security.Principal
 open CompositionRoot
 open GloomChars.Authentication
-open GloomChars.Common
+open GloomChars.Core
 open FSharpPlus
 
 type ApplicationUser(user : AuthenticatedUser, identity : ClaimsIdentity) = 
     inherit ClaimsPrincipal(identity)
-    member this.Id = user.Id
+    member this.Id = UserId user.Id
     member this.Email = user.Email
     member this.AccessToken = user.AccessToken
     member this.IsSystemAdmin = user.IsSystemAdmin
@@ -56,7 +55,7 @@ module WebAuthentication =
         then toApplicationUser ctx.User
         else Error (Unauthorized "Authenticated user not found.")
 
-    let getLoggedInUserId (ctx : HttpContext) : Result<int,AppError> =
+    let getLoggedInUserId (ctx : HttpContext) : Result<UserId,AppError> =
         getLoggedInUser ctx
         |> map (fun u -> u.Id)
 

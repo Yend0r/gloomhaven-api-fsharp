@@ -7,23 +7,21 @@ module RequestHandlers =
     open FSharp.Control.Tasks.ContextInsensitive
     open Microsoft.Extensions.Configuration
 
-    let get (ctrlrFun : HttpContext -> HttpHandler) : HttpHandler = 
+    let handle (ctrlrFun : HttpContext -> HttpHandler) : HttpHandler = 
         fun (next : HttpFunc) (ctx : HttpContext) ->
             task {
-                let config = ctx.GetService<IConfiguration>()
                 let rsp = ctrlrFun ctx
                 return! rsp next ctx
             }
 
-    let getWithArgs (ctrlrFun : HttpContext -> 'T -> HttpHandler) (args : 'T) : HttpHandler = 
+    let handleWithArgs (ctrlrFun : HttpContext -> 'T -> HttpHandler) (args : 'T) : HttpHandler = 
         fun (next : HttpFunc) (ctx : HttpContext) ->
             task {
-                let config = ctx.GetService<IConfiguration>()
                 let rsp = ctrlrFun ctx args
                 return! rsp next ctx
             }
 
-    let post (ctrlrFun : HttpContext -> 'TJson -> HttpHandler) : HttpHandler = 
+    let handleBody (ctrlrFun : HttpContext -> 'TJson -> HttpHandler) : HttpHandler = 
         fun (next : HttpFunc) (ctx : HttpContext) ->
             task {
                 let! jsonContent = ctx.BindJsonAsync<'TJson>()
@@ -31,7 +29,7 @@ module RequestHandlers =
                 return! rsp next ctx
             }
 
-    let postWithArgs (ctrlrFun : HttpContext -> 'TJson -> 'TArgs -> HttpHandler) (args : 'TArgs) : HttpHandler = 
+    let handleBodyWithArgs (ctrlrFun : HttpContext -> 'TJson -> 'TArgs -> HttpHandler) (args : 'TArgs) : HttpHandler = 
         fun (next : HttpFunc) (ctx : HttpContext) ->
             task {
                 let! jsonContent = ctx.BindJsonAsync<'TJson>()
@@ -39,28 +37,16 @@ module RequestHandlers =
                 return! rsp next ctx
             }
 
-    let delete (ctrlrFun : HttpContext -> HttpHandler) : HttpHandler = 
-        fun (next : HttpFunc) (ctx : HttpContext) ->
-            task {
-                let rsp = ctrlrFun ctx 
-                return! rsp next ctx
-            }
+    let getCi path routeHandler = routeCi path >=> (handle routeHandler)
 
-    let deleteWithArgs (ctrlrFun : HttpContext -> 'TArgs -> HttpHandler) (args : 'TArgs) : HttpHandler = 
-        fun (next : HttpFunc) (ctx : HttpContext) ->
-            task {
-                let rsp = ctrlrFun ctx args
-                return! rsp next ctx
-            }
+    let getCif path routeHandler = routeCif path  (handleWithArgs routeHandler)
 
-    let getCi path routeHandler = routeCi path >=> (get routeHandler)
+    let postCi path routeHandler = routeCi path >=> (handleBody routeHandler)
 
-    let getCif path routeHandler = routeCif path  (getWithArgs routeHandler)
+    let postCif path routeHandler = routeCif path  (handleBodyWithArgs routeHandler)
 
-    let postCi path routeHandler = routeCi path >=> (post routeHandler)
+    let deleteCi path routeHandler = routeCi path >=> (handle routeHandler)
 
-    let postCif path routeHandler = routeCif path  (postWithArgs routeHandler)
+    let deleteCif path routeHandler = routeCif path (handleWithArgs routeHandler)
 
-    let deleteCi path routeHandler = routeCi path >=> (delete routeHandler)
-
-    let deleteCif path routeHandler = routeCif path (deleteWithArgs routeHandler)
+    let patchCif path routeHandler = routeCif path (handleBodyWithArgs routeHandler)

@@ -35,6 +35,7 @@ module CharactersRoutes =
                     postCif "/characters/%i" updateCharacter 
                     postCi "/characters" addCharacter
                 ]
+            PATCH >=> requiresAuthenticatedUser >=> patchCif "/characters/%i" patchCharacter 
             DELETE >=> requiresAuthenticatedUser >=> deleteCif "/characters/%i" deleteCharacter 
         ]
 

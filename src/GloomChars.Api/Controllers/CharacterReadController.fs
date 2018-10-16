@@ -73,14 +73,12 @@ module CharacterReadController =
 
     let listCharacters (ctx : HttpContext) : HttpHandler = 
         WebAuthentication.getLoggedInUserId ctx
-        |> map UserId
         |> map CharactersSvc.getCharacters 
         |> map (List.map toListModel)
         |> toJsonListResponse 
 
     let getCharacter (ctx : HttpContext) (id : int) : HttpHandler = 
         WebAuthentication.getLoggedInUserId ctx
-        |> map UserId
         >>= CharactersSvc.getCharacter (CharacterId id)
         |> Result.map toViewModel
         |> toJsonResponse "Character not found"
