@@ -55,11 +55,11 @@ module CompositionRoot =
 
     module CharactersSvc = 
 
-        let private dbGetCharacter        = CharactersRepository.getCharacter db
-        let private dbGetCharacters       = CharactersRepository.getCharacters db
-        let private dbInsertNewCharacter  = CharactersRepository.insertNewCharacter db
-        let private dbUpdateCharacter     = CharactersRepository.updateCharacter db
-        let private dbDeleteCharacter     = CharactersRepository.deleteCharacter db
+        let private dbGetCharacter        = CharactersReadRepository.getCharacter db
+        let private dbGetCharacters       = CharactersReadRepository.getCharacters db
+        let private dbInsertNewCharacter  = CharactersEditRepository.insertNewCharacter db
+        let private dbUpdateCharacter     = CharactersEditRepository.updateCharacter db
+        let private dbDeleteCharacter     = CharactersEditRepository.deleteCharacter db
 
         let getCharacter characterId userId = 
             CharactersService.getCharacter dbGetCharacter characterId userId
@@ -72,7 +72,9 @@ module CompositionRoot =
             |> toAppResult
 
         let updateCharacter characterUpdate = 
-            CharactersService.updateCharacter dbUpdateCharacter characterUpdate
+            CharactersService.updateCharacter dbGetCharacter dbUpdateCharacter characterUpdate
             |> toAppResult
 
-        let deleteCharacter = CharactersService.deleteCharacter dbDeleteCharacter 
+        let deleteCharacter characterId userId = 
+            CharactersService.deleteCharacter dbGetCharacter dbDeleteCharacter characterId userId
+            |> toAppResult

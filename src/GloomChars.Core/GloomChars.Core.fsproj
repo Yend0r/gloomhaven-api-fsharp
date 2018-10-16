@@ -5,7 +5,8 @@
   <ItemGroup>
     <Compile Include="Types.fs" />
     <Compile Include="GameData.fs" />
-    <Compile Include="CharactersRepository.fs" />
+    <Compile Include="CharactersEditRepository.fs" />
+    <Compile Include="CharactersReadRepository.fs" />
     <Compile Include="DeckService.fs" />
     <Compile Include="PerkService.fs" />
     <Compile Include="CharactersService.fs" />

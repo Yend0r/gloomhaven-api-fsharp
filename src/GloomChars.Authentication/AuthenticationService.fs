@@ -40,9 +40,9 @@ module AuthenticationService =
             if shouldUnlock dateLockedOut lockoutDuration then
                 Ok { user with LockedOutStatus = NotLockedOut }
             else
-                let dateLockedOut = dateLockedOut.AddMinutes(float lockoutDuration)
-                let msg = sprintf "Locked out: %i mins (%A - %A)" lockoutDuration dateLockedOut DateTime.UtcNow
-                //Error (sprintf "Account is locked out. Please wait %i mins or contact an administrator." lockoutDuration)
+                //let dateLockedOut = dateLockedOut.AddMinutes(float lockoutDuration)
+                //let msg = sprintf "Locked out: %i mins (%A - %A)" lockoutDuration dateLockedOut DateTime.UtcNow
+                let msg = sprintf "Account is locked out. Please wait %i mins or contact an administrator." lockoutDuration
                 Error msg
 
         | NotLockedOut -> 

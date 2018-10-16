@@ -46,6 +46,13 @@ module RequestHandlers =
                 return! rsp next ctx
             }
 
+    let deleteWithArgs (ctrlrFun : HttpContext -> 'TArgs -> HttpHandler) (args : 'TArgs) : HttpHandler = 
+        fun (next : HttpFunc) (ctx : HttpContext) ->
+            task {
+                let rsp = ctrlrFun ctx args
+                return! rsp next ctx
+            }
+
     let getCi path routeHandler = routeCi path >=> (get routeHandler)
 
     let getCif path routeHandler = routeCif path  (getWithArgs routeHandler)
@@ -55,3 +62,5 @@ module RequestHandlers =
     let postCif path routeHandler = routeCif path  (postWithArgs routeHandler)
 
     let deleteCi path routeHandler = routeCi path >=> (delete routeHandler)
+
+    let deleteCif path routeHandler = routeCif path (deleteWithArgs routeHandler)

@@ -117,7 +117,6 @@ type GloomClass =
 type Character = 
     { 
         Id           : CharacterId
-        UserId       : UserId
         Name         : string
         ClassName    : GloomClassName
         Experience   : int
@@ -126,11 +125,26 @@ type Character =
         Perks        : Perk list
     }
 
+type CharacterListItem = 
+    { 
+        Id           : CharacterId
+        Name         : string
+        ClassName    : GloomClassName
+        Experience   : int
+        Gold         : int
+    }
+
 type NewCharacter = 
     {
         UserId       : UserId
         Name         : string
         ClassName    : GloomClassName
+    }
+
+type PerkUpdate = 
+    { 
+        Id       : string
+        Quantity : int
     }
 
 type CharacterUpdate = 
@@ -141,7 +155,7 @@ type CharacterUpdate =
         Experience   : int
         Gold         : int
         Achievements : int
-        PerkIds      : string list
+        Perks        : PerkUpdate list
     }
 
 //--------------------------------------------
@@ -150,10 +164,24 @@ type CharacterUpdate =
 type DbCharacter = 
     { 
         Id           : int
-        UserId       : int
         Name         : string
         ClassName    : string
         Experience   : int
         Gold         : int
         Achievements : int
+    }
+
+type DbCharacterListItem = 
+    { 
+        Id           : int
+        Name         : string
+        ClassName    : string
+        Experience   : int
+        Gold         : int
+    }
+
+type DbCharacterPerk = 
+    {
+        PerkId   : string
+        Quantity : int
     }

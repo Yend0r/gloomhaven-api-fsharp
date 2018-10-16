@@ -14,15 +14,14 @@ module AuthenticationRoutes =
                     //Must be authenticated to change your password
                     requiresAuthenticatedUser >=> postCi "/authentication/password" changePassword 
                 ]
-            DELETE >=>
-                choose [
-                    //Must be authenticated to logout
-                    requiresAuthenticatedUser >=> deleteCi "/authentication/logout" logout 
-                ]
+
+            //Must be authenticated to logout
+            DELETE >=> requiresAuthenticatedUser >=> deleteCi "/authentication/logout" logout 
         ]
 
 module CharactersRoutes = 
-    open CharactersController 
+    open CharacterReadController 
+    open CharacterEditController 
 
     let router : HttpHandler =  
         choose [
@@ -31,6 +30,12 @@ module CharactersRoutes =
                     getCif "/characters/%i" getCharacter 
                     getCi "/characters" listCharacters 
                 ]
+            POST >=>
+                choose [
+                    postCif "/characters/%i" updateCharacter 
+                    postCi "/characters" addCharacter
+                ]
+            DELETE >=> requiresAuthenticatedUser >=> deleteCif "/characters/%i" deleteCharacter 
         ]
 
 module GameDataRoutes = 

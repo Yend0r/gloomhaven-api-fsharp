@@ -19,7 +19,8 @@
     <Compile Include="Controllers\DefaultController.fs" />
     <Compile Include="Controllers\AdminController.fs" />
     <Compile Include="Controllers\GameDataController.fs" />
-    <Compile Include="Controllers\CharactersController.fs" />
+    <Compile Include="Controllers\CharacterEditController.fs" />
+    <Compile Include="Controllers\CharacterReadController.fs" />
     <Compile Include="Routing.fs" />
     <Compile Include="Program.fs" />
     <None Include="web.config" CopyToOutputDirectory="PreserveNewest" />
@@ -29,11 +30,11 @@
     </Content>
     <None Include="appsettings.Production.json" />
     <None Include="appsettings.Development.json" />
+    <PackageReference Include="FSharpPlus" Version="1.0.0" />
     <ProjectReference Include="..\GloomChars.Authentication\GloomChars.Authentication.fsproj" />
     <ProjectReference Include="..\GloomChars.Common\GloomChars.Common.fsproj" />
     <ProjectReference Include="..\GloomChars.Core\GloomChars.Core.fsproj" />
     <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.*" />
-    <PackageReference Include="FSharpPlus" Version="1.0.0" />
     <PackageReference Include="Giraffe" Version="3.2.0" />
   </ItemGroup>
 </Project>
