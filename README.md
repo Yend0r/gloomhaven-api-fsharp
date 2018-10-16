@@ -1,31 +1,18 @@
-# src
+# GloomHaven Api (F#)
 
-A [Giraffe](https://github.com/giraffe-fsharp/Giraffe) web application, which has been created via the `dotnet new giraffe` command.
+A [Giraffe](https://github.com/giraffe-fsharp/Giraffe) web application, which is an API to persist characters for the GloomHaven board game.
 
-## Build and test the application
+## Tech Stack
 
-### Windows
+- ASP.NET Core 2.1
+- [Giraffe](https://github.com/giraffe-fsharp/Giraffe) : a native functional ASP.NET Core web framework.
+- [PostgreSQL](https://www.postgresql.org/) : a relational database
+- [Dapper](https://github.com/StackExchange/Dapper) : a micro-orm also used by StackOverflow 
 
-Run the `build.bat` script in order to restore, build and test (if you've selected to include tests) the application:
+### Architecture
 
-```
-> ./build.bat
-```
+The architecture is a typical layered app that attempts to separate concerns via layering as well as by code modularity. 
 
-### Linux/macOS
+Web Layer -> Internal "Services" Layer -> Persistence Layer
 
-Run the `build.sh` script in order to restore, build and test (if you've selected to include tests) the application:
-
-```
-$ ./build.sh
-```
-
-## Run the application
-
-After a successful build you can start the web application by executing the following command in your terminal:
-
-```
-dotnet run src/src
-```
-
-After the application has started visit [http://localhost:5000](http://localhost:5000) in your preferred browser.
+## TODO: document the api and learn to write readme's better.
