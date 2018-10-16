@@ -1,13 +1,8 @@
 ﻿namespace GloomChars.Api
 
-module AuthenticationController = 
+module AuthenticationModels =
     open System
-    open Giraffe
-    open Microsoft.AspNetCore.Http
-    open GloomChars.Authentication
-    open CompositionRoot
-    open FSharpPlus
-    open ResponseHandlers
+    open GloomChars.Authentication 
 
     [<CLIMutable>]
     type LoginRequest =
@@ -30,26 +25,35 @@ module AuthenticationController =
             AccessTokenExpiresAt : DateTime
         }
 
-    let private createLoginResponse (user : AuthenticatedUser) : LoginResponse = 
+    let createLoginResponse (user : AuthenticatedUser) : LoginResponse = 
         let (AccessToken token) = user.AccessToken
+
         {
             Email                = user.Email
             AccessToken          = token
             AccessTokenExpiresAt = user.AccessTokenExpiresAt
         }
 
+module AuthenticationController = 
+    open Giraffe
+    open Microsoft.AspNetCore.Http
+    open CompositionRoot
+    open FSharpPlus
+    open ResponseHandlers
+    open AuthenticationModels
+
     let login ctx (loginRequest : LoginRequest) : HttpHandler = 
         AuthenticationSvc.authenticate loginRequest.Email loginRequest.Password
         >>= AuthenticationSvc.getAuthenticatedUser
         |> map createLoginResponse
-        |> resultToJson "Invalid email/password"
+        |> toJsonResponse "Invalid email/password"
 
     let logout (ctx : HttpContext) : HttpHandler = 
         ctx
         |> WebAuthentication.getLoggedInUser 
         |> map (fun u -> u.AccessToken)
         |> map AuthenticationSvc.revokeToken
-        |> resultToSuccessNoContent "Logout failed. No credentials supplied."
+        |> toSuccessNoContent "Logout failed. No credentials supplied."
 
     let changePassword ctx (changePasswordRequest : ChangePasswordRequest) : HttpHandler = 
         BAD_REQUEST "Not implemented" ""

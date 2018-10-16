@@ -1,15 +1,8 @@
 ﻿namespace GloomChars.Api
 
-module AdminController = 
+module AdminModels = 
     open System
-    open Giraffe
-    open Microsoft.AspNetCore.Http
-    open FSharp.Control.Tasks.ContextInsensitive
     open GloomChars.Authentication
-    open GloomChars.Common.Validation
-    open CompositionRoot
-    open ResponseHandlers
-    open FSharpPlus
 
     [<CLIMutable>]
     type AddUserRequest =
@@ -26,7 +19,7 @@ module AdminController =
             IsLockedOut   : bool
         }
 
-    let private toUserViewModel (user : User) = 
+    let toUserViewModel (user : User) = 
         {
             Id           = user.Id
             Email        = user.Email
@@ -34,6 +27,21 @@ module AdminController =
             IsLockedOut  = match user.LockedOutStatus with | LockedOut _ -> true | _ -> false 
         }
 
+    let toNewUser (user : AddUserRequest) : NewUser = 
+        { 
+            Email = user.Email
+            Password = user.Password 
+        }
+
+module AdminController = 
+    open Giraffe
+    open Microsoft.AspNetCore.Http
+    open GloomChars.Common.Validation
+    open CompositionRoot
+    open ResponseHandlers
+    open FSharpPlus
+    open AdminModels
+    
     let private validateNewUser (user : AddUserRequest) = 
         validateRequiredString (user.Email, "email") []
         |> validateRequiredString (user.Password, "password") 
@@ -43,10 +51,7 @@ module AdminController =
         | [] -> Ok user
         | errors -> Error (Msg (errorsToString errors))
 
-    let private toNewUser (user : AddUserRequest) : NewUser = 
-        { Email = user.Email; Password = user.Password }
-
-    let private toResourceLocation (ctx : HttpContext) userId = 
+    let private toResourceUri (ctx : HttpContext) userId = 
         sprintf "%s/admin/users/%i" (ctx.Request.Host.ToString()) userId
 
     let addUser (ctx : HttpContext) (addUserRequest : AddUserRequest) : HttpHandler = 
@@ -54,8 +59,8 @@ module AdminController =
         |> validateNewUser 
         |> map toNewUser
         >>= UsersSvc.addUser
-        |> map (toResourceLocation ctx)
-        |> resultToResourceLocation "Failed to add user."
+        |> map (toResourceUri ctx)
+        |> toContentCreatedResponse "Failed to add user."
         
     let listUsers (ctx : HttpContext) : HttpHandler = 
         UsersSvc.getUsers()

@@ -92,22 +92,22 @@ module ResponseHandlers =
         | NotFound -> NOT_FOUND errorMsg 
         | Unauthorized err -> UNAUTHORIZED err 
 
-    let resultToJson errorMsg result = 
+    let toJsonResponse errorMsg result = 
         match result with 
         | Ok x -> json x
         | Error error -> error |> appErrorToResponse errorMsg
 
-    let resultToJsonList result = 
+    let toJsonListResponse result = 
         match result with 
         | Ok x -> jsonList x
         | Error error -> error |> appErrorToResponse ""
 
-    let resultToSuccessNoContent errorMsg result = 
+    let toSuccessNoContent errorMsg result = 
         match result with 
         | Ok location -> SUCCESS_204 
         | Error error -> error |> appErrorToResponse errorMsg
 
-    let resultToResourceLocation errorMsg result = 
+    let toContentCreatedResponse errorMsg result = 
         match result with 
         | Ok location -> SUCCESS_201 location
         | Error error -> error |> appErrorToResponse errorMsg

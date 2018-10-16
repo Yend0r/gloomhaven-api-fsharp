@@ -109,7 +109,7 @@ module BearerTokenAuth =
             Task.FromResult(
                 getRequestHeader this.Request authorizationHeader
                 |> map AccessToken
-                |> Result.mapError Unauthorized
+                |> Result.mapError Unauthorized //Ensure error types are the same for the next line
                 >>= AuthenticationSvc.getAuthenticatedUser 
                 |> map createAuthenticationTicket
                 |> function

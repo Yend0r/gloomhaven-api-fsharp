@@ -91,8 +91,7 @@ module AuthenticationService =
         match dbGetUserForAuth email with 
         | None -> 
             //No such user... do a fake password check (to take the same time as a real email) 
-            //so attackers cannot tell that the email doesn't exist. Although this is probably 
-            //pointless because they can use the password reset form to check emails... maybe it defeats dumb attackers.
+            //so attackers cannot tell that the email doesn't exist. 
             hashFakePassword()
             Error "Invalid email/password."
         | Some user ->

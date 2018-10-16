@@ -61,7 +61,6 @@ module CompositionRoot =
         let private dbUpdateCharacter     = CharactersRepository.updateCharacter db
         let private dbDeleteCharacter     = CharactersRepository.deleteCharacter db
 
-
         let getCharacter characterId userId = 
             CharactersService.getCharacter dbGetCharacter characterId userId
             |> optionToAppResult

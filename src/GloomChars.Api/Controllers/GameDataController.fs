@@ -1,12 +1,8 @@
 ﻿namespace GloomChars.Api
 
-module GameDataController = 
-    open Giraffe
-    open Microsoft.AspNetCore.Http
+module GameDataModels = 
     open GloomChars.Core
-    open ResponseHandlers
     open FSharpPlus
-    open CompositionRoot
 
     type PerkViewModel =
         {
@@ -24,14 +20,14 @@ module GameDataController =
             Perks      : PerkViewModel list
         }
 
-    let private toPerkViewModel (perk : Perk) : PerkViewModel = 
+    let toPerkViewModel (perk : Perk) : PerkViewModel = 
         {
             Id       = perk.Id
             Quantity = perk.Quantity
             Actions  = perk.Actions |> PerkService.getText
         }
 
-    let private toViewModel (gClass : GloomClass) : GloomClassViewModel = 
+    let toViewModel (gClass : GloomClass) : GloomClassViewModel = 
         {
             ClassName  = gClass.ClassName.ToString()
             Name       = gClass.Name
@@ -39,6 +35,14 @@ module GameDataController =
             IsStarting = gClass.IsStarting
             Perks      = gClass.Perks |> map toPerkViewModel
         }
+
+module GameDataController = 
+    open Giraffe
+    open Microsoft.AspNetCore.Http
+    open ResponseHandlers
+    open FSharpPlus
+    open CompositionRoot
+    open GameDataModels
 
     let listClasses (ctx : HttpContext) : HttpHandler = 
         GameDataSvc.gloomClasses
@@ -49,5 +53,5 @@ module GameDataController =
         className
         |> GameDataSvc.getGloomClass
         |> map toViewModel
-        |> resultToJson "Class not found"
+        |> toJsonResponse "Class not found"
 
