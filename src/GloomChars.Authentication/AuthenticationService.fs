@@ -58,28 +58,33 @@ module AuthenticationService =
         | false -> 
             //Increment the number of login attempts... may result in user being locked out 
             onInvalidPwd(user) 
-            Error "Invalid email/password"
+            Error "Invalid email/password."
+
+    let private makeNewLogin userId tokenDuration = 
+        {
+            UserId = userId
+            AccessToken = AccessToken(string (Guid.NewGuid())) 
+            AccessTokenExpiresAt = DateTime.UtcNow.AddMinutes(float tokenDuration) 
+        }
 
     let private createLogin
         (config : AuthenticationConfig) 
-        (dbInsertNewLogin : NewLogin -> Result<int, string>)
+        (dbInsertNewLogin : NewLogin -> Result<AccessToken, string>)
         (onSuccessfulLogin : int -> unit)
         (user : PreAuthUser) = 
 
-        //Log them in
-        let newLogin = 
-            {
-                UserId = user.Id
-                AccessToken = AccessToken(string (Guid.NewGuid())) 
-                AccessTokenExpiresAt = DateTime.UtcNow.AddMinutes(float config.AccessTokenDurationInMins) 
-            }
+        let token = AccessToken(string (Guid.NewGuid()))
+        let tokenExpiry = DateTime.UtcNow.AddMinutes(float config.AccessTokenDurationInMins) 
 
-        dbInsertNewLogin newLogin
+        //Log them in
+        (user.Id, config.AccessTokenDurationInMins)
+        ||> makeNewLogin 
+        |> dbInsertNewLogin 
         |> function 
-        | Ok _ -> 
+        | Ok token -> 
             //Update user details - reset login attempts to zero
             onSuccessfulLogin(user.Id)
-            Ok newLogin.AccessToken
+            Ok token
         | Error err -> 
             Error err
 
@@ -101,7 +106,7 @@ module AuthenticationService =
         (config : AuthenticationConfig)
         (dbGetUserForAuth : string -> PreAuthUser option)
         (dbUpdateLoginStatus : LoginStatusUpdate -> unit)
-        (dbInsertNewLogin : NewLogin -> Result<int, string>)
+        (dbInsertNewLogin : NewLogin -> Result<AccessToken, string>)
         (email : string)
         (password : string) = 
 

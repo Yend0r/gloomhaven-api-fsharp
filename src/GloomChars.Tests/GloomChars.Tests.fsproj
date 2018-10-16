@@ -6,6 +6,7 @@
   <ItemGroup>
     <Compile Include="GloomClassTests.fs" />
     <Compile Include="ModifierDeckTests.fs" />
+    <Compile Include="AuthenticationTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.8.0" />
@@ -15,5 +16,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\GloomChars.Core\GloomChars.Core.fsproj" />
+    <ProjectReference Include="..\GloomChars.Authentication\GloomChars.Authentication.fsproj" />
+    <ProjectReference Include="..\GloomChars.Common\GloomChars.Common.fsproj" />
   </ItemGroup>
 </Project>

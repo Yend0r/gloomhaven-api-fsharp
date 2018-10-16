@@ -128,8 +128,8 @@ module AuthenticationRepository =
         AuthenticationSql.insertNewLogin newLogin
         |> dbContext.TryExecuteScalar
         |> function
-        | Success loginId -> 
-            Ok loginId
+        | Success _ -> 
+            Ok newLogin.AccessToken
         | UniqueConstraintError _ ->
             Error "Access token already exists." //Guid collision... hmm...
 
