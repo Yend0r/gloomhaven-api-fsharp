@@ -9,6 +9,8 @@ open FSharpPlus
 module internal CharactersSql = 
 
     let getCharacters userId = 
+        let (UserId uId) = userId
+
         sql
             """
             SELECT id        As Id,
@@ -22,9 +24,12 @@ module internal CharactersSql =
             WHERE user_id = @userId
             ORDER BY name 
             """
-            [ p "userId" userId ]
+            [ p "userId" uId ]
 
     let getCharacter characterId userId = 
+        let (CharacterId cId) = characterId
+        let (UserId uId) = userId
+
         sql
             """
             SELECT id        AS Id,
@@ -39,11 +44,13 @@ module internal CharactersSql =
                 AND id = @id
             """
             [ 
-                p "userId" userId 
-                p "id" characterId 
+                p "userId" uId 
+                p "id" cId 
             ]
 
     let insertNewCharacter (character : NewCharacter) = 
+        let (UserId uId) = character.UserId
+
         sql
             """
             INSERT INTO characters
@@ -67,7 +74,7 @@ module internal CharactersSql =
             RETURNING id
             """
             [
-                p "user_id" character.UserId
+                p "user_id" uId
                 p "name" character.Name
                 p "class_name" (character.ClassName.ToString())
                 p "date_created" DateTime.Now
@@ -75,6 +82,9 @@ module internal CharactersSql =
             ]
 
     let updateCharacter (character : CharacterUpdate) = 
+        let (CharacterId cId) = character.Id
+        let (UserId uId) = character.UserId
+
         sql
             """
             UPDATE characters 
@@ -87,8 +97,8 @@ module internal CharactersSql =
             WHERE id = @id AND user_id = @user_id
             """
             [
-                p "id" character.Id
-                p "user_id" character.UserId
+                p "id" cId
+                p "user_id" uId
                 p "name" character.Name
                 p "experience" character.Experience
                 p "gold" character.Gold
@@ -97,6 +107,9 @@ module internal CharactersSql =
             ]
 
     let deleteCharacter characterId userId = 
+        let (CharacterId cId) = characterId
+        let (UserId uId) = userId
+
         sql
             """
             DELETE FROM characters
@@ -104,8 +117,8 @@ module internal CharactersSql =
                 AND id = @characterId
             """
             [ 
-                p "userId" userId 
-                p "id" characterId 
+                p "userId" cId 
+                p "id" uId 
             ]
 
 [<RequireQualifiedAccess>]
@@ -121,8 +134,8 @@ module CharactersRepository =
                 raise (new Exception(error)) 
 
         { 
-            Id = dbCharater.Id
-            UserId = dbCharater.UserId
+            Id = CharacterId dbCharater.Id
+            UserId = UserId dbCharater.UserId
             Name = dbCharater.Name
             ClassName = gloomClassName
             Experience = dbCharater.Experience

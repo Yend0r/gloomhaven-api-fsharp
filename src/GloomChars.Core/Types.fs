@@ -3,6 +3,9 @@
 open System
 open GloomChars.Common
 
+type UserId = UserId of int
+type CharacterId = CharacterId of int
+
 type DslText =
     | With
     | And 
@@ -113,8 +116,8 @@ type GloomClass =
 
 type Character = 
     { 
-        Id           : int
-        UserId       : int
+        Id           : CharacterId
+        UserId       : UserId
         Name         : string
         ClassName    : GloomClassName
         Experience   : int
@@ -125,15 +128,15 @@ type Character =
 
 type NewCharacter = 
     {
-        UserId       : int
+        UserId       : UserId
         Name         : string
         ClassName    : GloomClassName
     }
 
 type CharacterUpdate = 
     { 
-        Id           : int
-        UserId       : int
+        Id           : CharacterId
+        UserId       : UserId
         Name         : string
         Experience   : int
         Gold         : int

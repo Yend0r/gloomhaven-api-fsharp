@@ -2,10 +2,10 @@
 
 module CharactersService = 
 
-    let getCharacter (dbGetCharacter : int -> int -> Character option) characterId userId : Character option = 
+    let getCharacter (dbGetCharacter : CharacterId -> UserId -> Character option) characterId userId : Character option = 
         dbGetCharacter characterId userId
 
-    let getCharacters (dbGetCharacters : int -> Character list) userId : Character list = 
+    let getCharacters (dbGetCharacters : UserId -> Character list) userId : Character list = 
         dbGetCharacters userId
 
     let addCharacter (dbInsertNewCharacter : NewCharacter -> Result<int, string>) (newCharacter : NewCharacter) = 
@@ -14,5 +14,5 @@ module CharactersService =
     let updateCharacter (dbUpdateCharacter : CharacterUpdate -> Result<int, string>) (character : CharacterUpdate) = 
         dbUpdateCharacter character
 
-    let deleteCharacter (dbDeleteCharacter : int -> int -> unit) characterId userId = 
+    let deleteCharacter (dbDeleteCharacter : CharacterId -> UserId -> unit) characterId userId = 
         dbDeleteCharacter characterId userId

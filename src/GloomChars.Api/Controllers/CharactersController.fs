@@ -42,15 +42,15 @@ module CharactersModels =
 
     let toNewCharacter (character : NewCharacterRequest) (gloomClass : GloomClassName) (userId:int) = 
         {
-            UserId    = userId
+            UserId    = UserId userId
             Name      = character.Name
             ClassName = gloomClass
         }
 
     let toCharacterUpdate (character : CharacterUpdateRequest) (userId:int) = 
         {
-            Id           = character.Id
-            UserId       = userId
+            Id           = CharacterId character.Id
+            UserId       = UserId userId
             Name         = character.Name
             Experience   = character.Experience
             Gold         = character.Gold
@@ -66,8 +66,10 @@ module CharactersModels =
         }
 
     let toViewModel (character : Character) : CharacterViewModel = 
+        let (CharacterId cId) = character.Id 
+
         {
-            Id           = character.Id
+            Id           = cId
             Name         = character.Name
             ClassName    = character.ClassName.ToString()
             Experience   = character.Experience
@@ -113,13 +115,15 @@ module CharactersController =
 
     let listCharacters (ctx : HttpContext) : HttpHandler = 
         WebAuthentication.getLoggedInUserId ctx
+        |> map UserId
         |> map CharactersSvc.getCharacters 
         |> map (List.map toViewModel)
         |> toJsonListResponse 
 
     let getCharacter (ctx : HttpContext) (id : int) : HttpHandler = 
         WebAuthentication.getLoggedInUserId ctx
-        >>= CharactersSvc.getCharacter id
+        |> map UserId
+        >>= CharactersSvc.getCharacter (CharacterId id)
         |> Result.map toViewModel
         |> toJsonResponse "Character not found"
 
@@ -141,5 +145,6 @@ module CharactersController =
 
     let deleteCharacter (ctx : HttpContext) (characterId : int) : HttpHandler = 
         WebAuthentication.getLoggedInUserId ctx
-        |> map (CharactersSvc.deleteCharacter characterId)
+        |> map UserId
+        |> map (CharactersSvc.deleteCharacter (CharacterId characterId))
         |> toSuccessNoContent "Delete failed."
