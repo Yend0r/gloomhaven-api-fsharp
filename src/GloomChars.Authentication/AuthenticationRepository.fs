@@ -106,7 +106,7 @@ module AuthenticationRepository =
             LoginAttemptNumber = dbUser.LoginAttemptNumber
             DateCreated = dbUser.DateCreated
             DateUpdated = dbUser.DateUpdated
-            LockedOutStatus = LockedOutStatus.fromDb(dbUser.IsLockedOut, dbUser.DateLockedOut)
+            LockedOutStatus = LockedOutStatus.FromDb(dbUser.IsLockedOut, dbUser.DateLockedOut)
         }
 
     let private mapToAuthenticatedUser (dbUser : DbAuthenticatedUser) = 

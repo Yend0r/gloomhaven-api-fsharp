@@ -27,7 +27,7 @@ module CharacterEditController =
         | errors -> Error (Msg (errorsToString errors))
 
     let private getGloomClassName (className : string) = 
-        match GloomClassName.fromString className with
+        match GloomClassName.FromString className with
         | Some gloomClass -> Ok gloomClass
         | None -> Error (Msg "ClassName is invalid")
 

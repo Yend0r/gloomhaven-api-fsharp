@@ -103,7 +103,7 @@ type GloomClassName =
     | BeastTyrant
     with
         override this.ToString() = Utils.unionToString this
-        static member fromString s = Utils.unionFromString<GloomClassName> s 
+        static member FromString s = Utils.unionFromString<GloomClassName> s 
 
 type GloomClass = 
     {

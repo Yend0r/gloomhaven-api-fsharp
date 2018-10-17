@@ -64,7 +64,7 @@ module UserRepository =
             Id = dbUser.Id
             Email = dbUser.Email
             DateCreated = dbUser.DateCreated
-            LockedOutStatus = LockedOutStatus.fromDb(dbUser.IsLockedOut, dbUser.DateLockedOut)
+            LockedOutStatus = LockedOutStatus.FromDb(dbUser.IsLockedOut, dbUser.DateLockedOut)
         }
 
     let insertNewUser 

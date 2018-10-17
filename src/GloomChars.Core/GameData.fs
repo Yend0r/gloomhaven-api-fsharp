@@ -16,7 +16,7 @@ module GameData =
     // possible to transfer toon between apps. So hard-coded data works best.
 
     let modCard action dmg (drawAction : DrawAction) = 
-        let drawAnother = if drawAction=Draw then true else false
+        let drawAnother = drawAction=Draw
         { DrawAnother=drawAnother; Reshuffle=false; Action=action; Damage=dmg }
 
     let makePerkCard numCards card = 
@@ -303,6 +303,6 @@ module GameData =
 
     let getGloomClass className : GloomClass option = 
         className
-        |> GloomClassName.fromString 
+        |> GloomClassName.FromString 
         |> map gloomClass
         

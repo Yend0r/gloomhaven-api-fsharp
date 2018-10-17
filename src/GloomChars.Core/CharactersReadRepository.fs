@@ -58,7 +58,7 @@ module internal CharactersReadSql =
 module CharactersReadRepository = 
 
     let private getGloomClassName characterId className = 
-        match GloomClassName.fromString className with
+        match GloomClassName.FromString className with
         | Some name -> name
         | None -> 
             //Bad data... need to manually fix
@@ -72,7 +72,7 @@ module CharactersReadRepository =
         | Some p -> Some { p with Quantity = dbPerk.Quantity }
         | None -> None
 
-    let private mapToCharacter (dbPerks : DbCharacterPerk []) (dbCharacter : DbCharacter) : Character = 
+    let private toCharacter (dbPerks : DbCharacterPerk []) (dbCharacter : DbCharacter) : Character = 
 
         let className = getGloomClassName dbCharacter.Id dbCharacter.ClassName
 
@@ -94,7 +94,7 @@ module CharactersReadRepository =
             Perks = perks
         }
 
-    let private mapToCharacterListItem (dbCharater : DbCharacterListItem) : CharacterListItem = 
+    let private toCharacterListItem (dbCharater : DbCharacterListItem) : CharacterListItem = 
         { 
             Id = CharacterId dbCharater.Id
             Name = dbCharater.Name
@@ -111,11 +111,10 @@ module CharactersReadRepository =
 
         dbCharacter
         |> Array.tryHead
-        |> map (mapToCharacter dbPerks)
+        |> map (toCharacter dbPerks)
 
     let getCharacters (dbContext : IDbContext) userId : CharacterListItem list = 
         CharactersReadSql.getCharacters userId
         |> dbContext.Query<DbCharacterListItem>
-        |> map (fun c -> mapToCharacterListItem c)
+        |> map toCharacterListItem
         |> Array.toList
-

@@ -66,7 +66,7 @@ module PerkService =
         let draw = drawText pcard.Card.DrawAnother
 
         [num; dmg; action; draw; cards] 
-        |> List.filter(fun s -> not (String.IsNullOrWhiteSpace s)) 
+        |> List.filter(fun s -> (String.IsNullOrWhiteSpace >> not) s) 
         |> String.concat " " 
 
     let private addText idx (pcard : PerkCardAction) = 
@@ -98,7 +98,6 @@ module PerkService =
 
     let getText (perkActions : PerkAction list) =
         perkActions
-        |> List.mapi(fun idx action -> getActionText idx action)
+        |> List.mapi getActionText
         |> String.concat " " 
-
-
+        

@@ -21,7 +21,7 @@ type LockedOutStatus =
     | NotLockedOut
     | LockedOut of DateTime
     with 
-    static member fromDb(isLockedOut, dateLockedOut) = 
+    static member FromDb(isLockedOut, dateLockedOut) = 
         match (isLockedOut, dateLockedOut) with
         | (true, Some dt) -> 
             LockedOut dt
