@@ -6,7 +6,7 @@ module DeckService =
     open GameData 
 
     let private makeReshuffleCard action dmg (drawAction : DrawAction) = 
-        modCard Damage dmg drawAction true
+        modCard action dmg drawAction true
 
     let private makeDmgCard dmg =
         modCard Damage dmg NoDraw false
