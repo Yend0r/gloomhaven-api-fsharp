@@ -22,6 +22,7 @@ module AuthenticationRoutes =
 module CharactersRoutes = 
     open CharacterReadController 
     open CharacterEditController 
+    open DeckController 
 
     let router : HttpHandler =  
         choose [
@@ -29,11 +30,13 @@ module CharactersRoutes =
                 choose [
                     getCif "/characters/%i" getCharacter 
                     getCi "/characters" listCharacters 
+                    getCif "/characters/%i/decks" getDeck 
                 ]
             POST >=>
                 choose [
                     postCif "/characters/%i" updateCharacter 
                     postCi "/characters" addCharacter
+                    postCif "/characters/%i/decks" newDeck 
                 ]
             PATCH >=> requiresAuthenticatedUser >=> patchCif "/characters/%i" patchCharacter 
             DELETE >=> requiresAuthenticatedUser >=> deleteCif "/characters/%i" deleteCharacter 

@@ -78,3 +78,15 @@ module CompositionRoot =
         let deleteCharacter characterId userId = 
             CharactersService.deleteCharacter dbGetCharacter dbDeleteCharacter characterId userId
             |> toAppResult
+
+    module DeckSvc = 
+
+        let private dbGetDiscards        = DeckRepository.getDiscards db
+        let private dbInsertDiscard      = DeckRepository.insertDiscard db
+        let private dbDeleteDiscards     = DeckRepository.deleteDiscards db
+
+        let getDeck = DeckService.getDeck dbGetDiscards 
+
+        let drawCard = DeckService.drawCard dbGetDiscards dbInsertDiscard
+
+        let reshuffle = DeckService.reshuffle dbDeleteDiscards

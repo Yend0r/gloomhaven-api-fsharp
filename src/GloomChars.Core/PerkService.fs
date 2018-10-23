@@ -11,15 +11,15 @@ module PerkService =
         | 4 -> "four"
         | _ -> "INFINITE"
 
-    let private dmgText (modCard : ModifierCard) = 
+    let private cardDmgText (modCard : ModifierCard) = 
         match modCard.Damage with
         | x when x < 0 -> sprintf "%i" x
         | x when x = 0 && modCard.Action <> Damage -> String.Empty
         | x -> sprintf "+%i" x
 
-    let private modCardText (modCard : ModifierCard) = 
+    let private cardActionText (modCard : ModifierCard) = 
         match modCard.Action with
-        | Miss -> "Miss"
+        | Miss -> "MISS"
         | Damage -> String.Empty
         | MultiplyDamage _ -> String.Empty
         | Disarm -> "DISARM"
@@ -40,30 +40,30 @@ module PerkService =
         | RefreshItem -> "REFRESH AN ITEM"
         | Push amount ->
             let (PushAmount value) = amount
-            sprintf "PUSH%i" value
+            sprintf "PUSH %i" value
         | Pull amount ->
             let (PullAmount value) = amount
-            sprintf "PULL%i" value
+            sprintf "PULL %i" value
         | Pierce amount ->
             let (PierceAmount value) = amount
-            sprintf "PIERCE%i" value
+            sprintf "PIERCE %i" value
         | Heal amount ->
             let (HealAmount value) = amount
-            sprintf "HEAL%i" value
+            sprintf "HEAL %i" value
         | Shield amount ->
             let (ShieldAmount value) = amount
-            sprintf "SHIELD%i" value
+            sprintf "SHIELD %i" value
 
-    let private drawText drawAnother = if drawAnother then "DRAW" else String.Empty
+    let private cardDrawText drawAnother = if drawAnother then "DRAW ANOTHER" else String.Empty
 
-    let private cardText numCards = if numCards = 1 then "card" else "cards"
+    let private numCardsText numCards = if numCards = 1 then "card" else "cards"
 
     let private actionText (pcard : PerkCardAction) = 
         let num = numText pcard.NumCards
-        let dmg = dmgText pcard.Card
-        let cards = cardText pcard.NumCards
-        let action = modCardText pcard.Card
-        let draw = drawText pcard.Card.DrawAnother
+        let dmg = cardDmgText pcard.Card
+        let cards = numCardsText pcard.NumCards
+        let action = cardActionText pcard.Card
+        let draw = cardDrawText pcard.Card.DrawAnother
 
         [num; dmg; action; draw; cards] 
         |> List.filter(fun s -> (String.IsNullOrWhiteSpace >> not) s) 

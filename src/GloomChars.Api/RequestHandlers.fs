@@ -45,6 +45,8 @@ module RequestHandlers =
 
     let postCif path routeHandler = routeCif path  (handleBodyWithArgs routeHandler)
 
+    let postNoBodyCif path routeHandler = routeCif path  (handleWithArgs routeHandler)
+
     let deleteCi path routeHandler = routeCi path >=> (handle routeHandler)
 
     let deleteCif path routeHandler = routeCif path (handleWithArgs routeHandler)

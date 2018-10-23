@@ -8,7 +8,7 @@ module CharacterEditController =
     open FSharpPlus
     open CompositionRoot
     open GloomChars.Common.Validation
-    open CharacterEditModels
+    open CharacterEditModels 
 
     let private validateNewCharacter (character : NewCharacterRequest) validationErrors = 
         validateRequiredString (character.Name, "name") []
@@ -34,19 +34,25 @@ module CharacterEditController =
     let private toResourceUri (ctx : HttpContext) userId = 
         sprintf "%s/characters/%i" (ctx.Request.Host.ToString()) userId
 
-    let addCharacter (ctx : HttpContext) (character : NewCharacterRequest) = 
+    let private mapToNewCharacter ctx character = 
         Ok toNewCharacter
         <*> (validateNewCharacter character [])
         <*> (getGloomClassName character.ClassName)
         <*> (WebAuthentication.getLoggedInUserId ctx)
+
+    let private mapToCharacterUpdate ctx character characterId = 
+        Ok (toCharacterUpdate characterId)
+        <*> (validateCharacterUpdate character [])
+        <*> (WebAuthentication.getLoggedInUserId ctx)
+
+    let addCharacter (ctx : HttpContext) (character : NewCharacterRequest) = 
+        mapToNewCharacter ctx character
         >>= CharactersSvc.addCharacter 
         |> map (toResourceUri ctx)
         |> toContentCreatedResponse "Failed to add character."
 
     let updateCharacter (ctx : HttpContext) (character : CharacterUpdateRequest) (characterId : int) = 
-        Ok (toCharacterUpdate characterId)
-        <*> (validateCharacterUpdate character [])
-        <*> (WebAuthentication.getLoggedInUserId ctx)
+        mapToCharacterUpdate ctx character characterId
         >>= CharactersSvc.updateCharacter 
         |> toSuccessNoContent "Failed to update character."
         

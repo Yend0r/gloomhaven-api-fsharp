@@ -15,12 +15,19 @@ module GameData =
     // store the toons, so db wouldn't work there and it wouldn't be 
     // possible to transfer toon between apps. So hard-coded data works best.
 
-    let modCard action dmg (drawAction : DrawAction) = 
-        let drawAnother = drawAction=Draw
-        { DrawAnother=drawAnother; Reshuffle=false; Action=action; Damage=dmg }
+    let modCard action dmg (drawAction : DrawAction) reshuffle = 
+        { 
+            DrawAnother = drawAction=Draw
+            Reshuffle = reshuffle
+            Action = action
+            Damage = dmg
+        }
 
     let makePerkCard numCards card = 
-        { NumCards = numCards; Card = card; }
+        { 
+            NumCards = numCards
+            Card = card
+        }
 
     let private Push amnt = Push (PushAmount amnt)
     let private Pull amnt = Pull (PullAmount amnt)
@@ -29,13 +36,17 @@ module GameData =
     let private Shield amnt = Shield (ShieldAmount amnt)
 
     let private remove numCards action dmg draw = 
-        RemoveCard (makePerkCard numCards (modCard action dmg draw)) 
+        RemoveCard (makePerkCard numCards (modCard action dmg draw false)) 
 
     let private add numCards action dmg draw = 
-        AddCard (makePerkCard numCards (modCard action dmg draw))
+        AddCard (makePerkCard numCards (modCard action dmg draw false))
 
     let private makePerk id qty actions = 
-        { Id = id; Quantity = qty; Actions = actions; }
+        { 
+            Id = id
+            Quantity = qty
+            Actions = actions
+        }
 
     let private makeClass className name symbol isStarting perks = 
         { 
@@ -305,4 +316,88 @@ module GameData =
         className
         |> GloomClassName.FromString 
         |> map gloomClass
+
+(*
+module CSharpCodeGen = 
+
+    let private modCardText (modCard : ModifierCard) = 
+        match modCard.Action with
+        | Miss -> "Miss"
+        | Damage -> "Damage"
+        | MultiplyDamage amount -> 
+            let (DamageMultiplier value) = amount
+            sprintf "MultiplyDamage, %i" value
+        | Disarm -> "Disarm"
+        | Stun -> "Stun"
+        | Poison -> "Poison" 
+        | Wound  -> "Wound" 
+        | Muddle -> "Muddle"
+        | AddTarget -> "AddTarget"
+        | Immobilise -> "Immobilise"
+        | Invisible -> "Invisible"
+        | Fire -> "Fire"
+        | Ice -> "Ice"
+        | Light -> "Light"
+        | Air -> "Air"
+        | Dark -> "Dark"
+        | Earth -> "Earth"
+        | Curse -> "Curse"
+        | RefreshItem -> "RefreshItem"
+        | Push amount ->
+            let (PushAmount value) = amount
+            sprintf "Push, %i" value
+        | Pull amount ->
+            let (PullAmount value) = amount
+            sprintf "Pull, %i" value
+        | Pierce amount ->
+            let (PierceAmount value) = amount
+            sprintf "Pierce, %i" value
+        | Heal amount ->
+            let (HealAmount value) = amount
+            sprintf "Heal, %i" value
+        | Shield amount ->
+            let (ShieldAmount value) = amount
+            sprintf "Shield, %i" value
+            
+
+    let addCardText (p : PerkCardAction) = 
+        sprintf "AddCard(%i, CardAction.%s, %i, %b)" p.NumCards (modCardText p.Card) p.Card.Damage p.Card.DrawAnother
+
+    let removeCardText (p : PerkCardAction) = 
+        sprintf "RemoveCard(%i, CardAction.%s, %i, %b)" p.NumCards (modCardText p.Card) p.Card.Damage p.Card.DrawAnother
         
+    let getActionText (pAction : PerkAction) = 
+        match pAction with
+        | AddCard cardAction -> addCardText cardAction
+        | RemoveCard cardAction -> removeCardText cardAction
+        | IgnoreScenarioEffects -> "IgnoreScenario()" 
+        | IgnoreItemEffects -> "IgnoreItems()" 
+
+    let perkText (p : Perk) = 
+        let actiontext = p.Actions |> List.map getActionText |> String.concat "." 
+
+        sprintf """
+                        .WithPerk(Perk.Create("%s", %i).%s)""" p.Id p.Quantity actiontext
+
+    let classText (g : GloomClass) =
+        let cName = g.ClassName.ToString()
+        let create = sprintf """GloomClass.Create(GloomClassName.%s, "%s", "%s", %b)""" cName g.Name g.Symbol g.IsStarting
+        let perks = g.Perks |> List.map perkText |> String.concat ""
+
+        sprintf """
+        private GloomClass %s()
+        {
+            var gClass = 
+                %s 
+                        %s;
+            return gClass;
+        }
+        """ cName create perks
+
+
+    let classesText () = 
+        GameData.gloomClasses
+        |> List.map classText
+        |> String.concat "\n"
+
+        *)

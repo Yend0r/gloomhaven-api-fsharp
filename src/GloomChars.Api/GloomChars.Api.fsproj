@@ -12,6 +12,7 @@
     <Folder Include="Admin\" />
     <Folder Include="GameData\" />
     <Folder Include="Characters\" />
+    <Folder Include="Decks\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config.fs" />
@@ -25,6 +26,8 @@
     <Compile Include="Authentication\AuthenticationController.fs" />
     <Compile Include="Admin\AdminModels.fs" />
     <Compile Include="Admin\AdminController.fs" />
+    <Compile Include="Decks\DeckModels.fs" />
+    <Compile Include="Decks\DeckController.fs" />
     <Compile Include="GameData\GameDataModels.fs" />
     <Compile Include="GameData\GameDataController.fs" />
     <Compile Include="Characters\CharacterEditModels.fs" />

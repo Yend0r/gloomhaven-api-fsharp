@@ -25,7 +25,6 @@ type DamageMultiplier = DamageMultiplier of int
 type CardAction = 
     | Miss 
     | Damage 
-    | MultiplyDamage of DamageMultiplier
     | Disarm 
     | Stun 
     | Poison 
@@ -42,6 +41,7 @@ type CardAction =
     | Earth 
     | Curse 
     | RefreshItem 
+    | MultiplyDamage of DamageMultiplier
     | Push of PushAmount
     | Pull of PullAmount
     | Pierce of PierceAmount
@@ -54,13 +54,14 @@ type ModifierCard =
         DrawAnother : bool
         Reshuffle   : bool
         Action      : CardAction 
-        Damage      : int //Not an option type because the game docs often have text that says "+0" dmg
+        Damage      : int //Not an option type because cards can have "+0" dmg 
     }
 
 type ModifierDeck = 
     {
-        Cards      : ModifierCard list
-        DrawnCards : ModifierCard list
+        TotalCards  : int
+        CurrentCard : ModifierCard option
+        Discards    : ModifierCard list
     }
 
 type PerkCardAction = 
@@ -159,31 +160,3 @@ type CharacterUpdate =
         Perks        : PerkUpdate list
     }
 
-//--------------------------------------------
-// Database classes
-//--------------------------------------------
-type DbCharacter = 
-    { 
-        Id           : int
-        UserId       : int
-        Name         : string
-        ClassName    : string
-        Experience   : int
-        Gold         : int
-        Achievements : int
-    }
-
-type DbCharacterListItem = 
-    { 
-        Id           : int
-        Name         : string
-        ClassName    : string
-        Experience   : int
-        Gold         : int
-    }
-
-type DbCharacterPerk = 
-    {
-        PerkId   : string
-        Quantity : int
-    }

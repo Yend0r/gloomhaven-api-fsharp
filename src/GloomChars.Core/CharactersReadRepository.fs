@@ -5,6 +5,32 @@ open GloomChars.Common
 open GloomChars.Common.QueryUtils
 open FSharpPlus
 
+type DbCharacter = 
+    { 
+        Id           : int
+        UserId       : int
+        Name         : string
+        ClassName    : string
+        Experience   : int
+        Gold         : int
+        Achievements : int
+    }
+
+type DbCharacterListItem = 
+    { 
+        Id           : int
+        Name         : string
+        ClassName    : string
+        Experience   : int
+        Gold         : int
+    }
+
+type DbCharacterPerk = 
+    {
+        PerkId   : string
+        Quantity : int
+    }
+
 [<RequireQualifiedAccess>]
 module internal CharactersReadSql = 
 
