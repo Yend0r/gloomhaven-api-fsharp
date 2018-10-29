@@ -129,7 +129,7 @@ module AuthenticationRepository =
         |> dbContext.TryExecuteScalar
         |> function
         | Success _ -> 
-            Ok newLogin.AccessToken
+            Ok newLogin
         | UniqueConstraintError _ ->
             Error "Access token already exists." //Guid collision... hmm...
 

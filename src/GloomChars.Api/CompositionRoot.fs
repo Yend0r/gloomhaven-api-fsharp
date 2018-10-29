@@ -19,11 +19,12 @@ module CompositionRoot =
 
         let authenticate email password = 
             AuthenticationService.authenticate 
-                config.Authentication 
                 dbGetPreAuthUser
-                dbUpdateLoginStatus
-                dbInsertNewLogin
-                email 
+                PasswordVerifier.verify 
+                (LockoutChecker.check config.Authentication)
+                (LoginCreator.create config.Authentication dbInsertNewLogin)
+                (AuthenticationAttempts.saveAuthAttempt config.Authentication dbUpdateLoginStatus)
+                email
                 password
             |> toAppResult
 

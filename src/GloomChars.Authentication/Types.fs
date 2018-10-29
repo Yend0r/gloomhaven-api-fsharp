@@ -7,6 +7,7 @@ type AccessToken = AccessToken of string
 type AuthenticationConfig = 
     {
         AccessTokenDurationInMins   : int
+        UseLockout                  : bool
         LoginAttemptsBeforeLockout  : int
         LockoutDurationInMins       : int
     }
@@ -28,7 +29,6 @@ type LockedOutStatus =
         | (true, None) ->
             //This would mean that the db is in an invalid state (perhaps the db design can change to make this impossible?).
             //Nevertheless, have to deal it because F# forces the code to account for all possible states.
-            //Could add code to update the db in case this happens, but that would be overegineering at this point.
             LockedOut DateTime.UtcNow 
         | (false, _) ->
             NotLockedOut
@@ -56,6 +56,12 @@ type PreAuthUser =
         DateUpdated         : DateTime
         LockedOutStatus     : LockedOutStatus
     }
+
+type AuthFailure =
+    | EmailNotInSystem
+    | PasswordMismatch of PreAuthUser
+    | IsLockedOut of string
+    | ErrorSavingToken
 
 type DbAuthenticatedUser = 
     {

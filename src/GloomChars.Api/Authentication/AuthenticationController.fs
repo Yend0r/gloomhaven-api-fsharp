@@ -9,7 +9,8 @@ module AuthenticationController =
     open AuthenticationModels
 
     let login ctx (loginRequest : LoginRequest) : HttpHandler = 
-        AuthenticationSvc.authenticate loginRequest.Email loginRequest.Password
+        (loginRequest.Email, loginRequest.Password)
+        ||> AuthenticationSvc.authenticate 
         >>= AuthenticationSvc.getAuthenticatedUser
         |> map createLoginResponse
         |> toJsonResponse "Invalid email/password"

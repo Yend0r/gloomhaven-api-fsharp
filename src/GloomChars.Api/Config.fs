@@ -22,8 +22,14 @@ type AppConfig =
 [<RequireQualifiedAccess>]
 module Config = 
 
+    let private appFile (config : IConfigurationRoot) = 
+        sprintf "appsettings.%s.json" config.["ASPNETCORE_ENVIRONMENT"]
+
     let private configMissingMsg  key (config : IConfigurationRoot)= 
-        sprintf "Missing config: '%s' in appsettings.%s.json" key config.["ASPNETCORE_ENVIRONMENT"]
+        sprintf "Missing config: '%s' in appsettings.%s.json" key (appFile config)
+
+    let private configInvalidMsg  key (config : IConfigurationRoot)= 
+        sprintf "Invalid config: '%s' in appsettings.%s.json" key (appFile config)
 
     let private getStringConfig (config : IConfigurationRoot) key = 
         let value : string = config.[key]
@@ -33,11 +39,18 @@ module Config =
             failwith (configMissingMsg key config)
 
     let private getIntConfig (config : IConfigurationRoot) key = 
-        let value = getStringConfig config key |> Parse.int32
+        let value = (config, key) ||> getStringConfig |> Parse.int32
         if value.IsSome then
             value.Value 
         else
-            failwith (configMissingMsg key config)
+            failwith (configInvalidMsg key config)
+
+    let private getBoolConfig (config : IConfigurationRoot) key = 
+        let value = (config, key) ||> getStringConfig 
+        match value.ToUpper() with
+        | "TRUE" -> true
+        | "FALSE" -> false
+        | _ -> failwith (configInvalidMsg key config)
 
     let private buildConfig () =
         // Load the environment vars first, so we know which appSettings.json to load
@@ -46,7 +59,7 @@ module Config =
 
         ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile(sprintf "appsettings.%s.json" environmentConfig.["ASPNETCORE_ENVIRONMENT"], false)
+            .AddJsonFile(appFile environmentConfig, false)
             .AddEnvironmentVariables()
             .Build()
 
@@ -72,6 +85,7 @@ module Config =
         let authenticationConfig = 
             {
                 AccessTokenDurationInMins  = getIntConfig appConfig "AppConfig:Authentication:AccessTokenDurationInMins"
+                UseLockout                 = getBoolConfig appConfig "AppConfig:Authentication:UseLockout"
                 LoginAttemptsBeforeLockout = getIntConfig appConfig "AppConfig:Authentication:LoginAttemptsBeforeLockout"
                 LockoutDurationInMins      = getIntConfig appConfig "AppConfig:Authentication:LockoutDurationInMins"
             }  
