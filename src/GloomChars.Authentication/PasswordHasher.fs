@@ -2,7 +2,8 @@
 
 [<RequireQualifiedAccess>]
 module PasswordHasher = 
-
+    open System
+    open System.Text
     open Microsoft.AspNetCore.Identity
 
     // The Microsoft.AspNetCore.Identity hasher requires a user of type 'TUser' 
@@ -31,3 +32,8 @@ module PasswordHasher =
                 false //Ignoring the case of "Success - rehash required" for now
         with _exn -> 
             reraise()
+
+    //Fake password check (to hamper time based attacks). 
+    let hashFakePassword() = 
+        let fakePwd = Guid.NewGuid().ToString() |> Encoding.UTF8.GetBytes |> Convert.ToBase64String
+        verifyHashedPassword("", fakePwd, "") |> ignore

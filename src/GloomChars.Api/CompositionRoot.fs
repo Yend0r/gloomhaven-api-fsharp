@@ -9,6 +9,15 @@ module CompositionRoot =
     let private config = Config.config
     let private db = PostgresDbContext(config.Database.ConnectionString)
 
+    let private optionToAppResult opt = 
+        match opt with
+        | Some c -> Ok c
+        | None -> Error NotFound
+
+    let private toAppResult (result : Result<'a,string>) : Result<'a,AppError> = 
+        result 
+        |> Result.mapError Msg
+
     module AuthenticationSvc = 
 
         let private dbGetPreAuthUser        = AuthenticationRepository.getUserForAuth db
@@ -17,15 +26,21 @@ module CompositionRoot =
         let private dbInsertNewLogin        = AuthenticationRepository.insertNewLogin db
         let private dbRevoke                = AuthenticationRepository.revokeToken db
 
+        let private authFailureToString authError = 
+            match authError with
+            | IsLockedOut msg -> msg
+            | _ -> "Invalid email/password."
+            
         let authenticate email password = 
             AuthenticationService.authenticate 
                 dbGetPreAuthUser
                 PasswordVerifier.verify 
                 (LockoutChecker.check config.Authentication)
-                (LoginCreator.create config.Authentication dbInsertNewLogin)
+                (LoginCreator.create config.Authentication dbInsertNewLogin dbGetAuthenticatedUser)
                 (AuthenticationAttempts.saveAuthAttempt config.Authentication dbUpdateLoginStatus)
                 email
                 password
+            |> Result.mapError authFailureToString //Change any errors to a descriptive string
             |> toAppResult
 
         let getAuthenticatedUser accessToken = 

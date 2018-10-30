@@ -7,11 +7,11 @@ module AuthenticationController =
     open FSharpPlus
     open ResponseHandlers
     open AuthenticationModels
-
+    open GloomChars.Authentication
+    
     let login ctx (loginRequest : LoginRequest) : HttpHandler = 
         (loginRequest.Email, loginRequest.Password)
         ||> AuthenticationSvc.authenticate 
-        >>= AuthenticationSvc.getAuthenticatedUser
         |> map createLoginResponse
         |> toJsonResponse "Invalid email/password"
 

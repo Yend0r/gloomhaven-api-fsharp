@@ -62,6 +62,7 @@ type AuthFailure =
     | PasswordMismatch of PreAuthUser
     | IsLockedOut of string
     | ErrorSavingToken
+    | AuthUserNotFound
 
 type DbAuthenticatedUser = 
     {

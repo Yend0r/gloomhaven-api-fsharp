@@ -15,6 +15,9 @@
     <Folder Include="Decks\" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="4.5.*" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="Config.fs" />
     <Compile Include="ResponseHandlers.fs" />
     <Compile Include="RequestHandlers.fs" />
@@ -43,11 +46,12 @@
     </Content>
     <None Include="appsettings.Production.json" />
     <None Include="appsettings.Development.json" />
-    <PackageReference Include="FSharpPlus" Version="1.0.0" />
     <ProjectReference Include="..\GloomChars.Core\GloomChars.Core.fsproj" />
     <ProjectReference Include="..\GloomChars.Common\GloomChars.Common.fsproj" />
-    <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.*" />
     <ProjectReference Include="..\GloomChars.Authentication\GloomChars.Authentication.fsproj" />
+    <PackageReference Include="FSharpPlus" Version="1.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.*" />
     <PackageReference Include="Giraffe" Version="3.2.0" />
+    <PackageReference Include="FSharp.Core" Version="4.5.2" />
   </ItemGroup>
 </Project>

@@ -18,26 +18,32 @@ module LoginCreator =
             AccessTokenExpiresAt = DateTime.UtcNow.AddMinutes(float tokenDuration) 
         }
 
+    let private getUser dbGetAuthenticatedUser newLogin = 
+        match dbGetAuthenticatedUser newLogin.AccessToken with 
+        | Some user -> Ok user
+        | None -> Error AuthUserNotFound //This would be very weird
+
     let create
         (config : AuthenticationConfig) 
         (dbInsertNewLogin : NewLogin -> Result<NewLogin, string>)
+        (dbGetAuthenticatedUser : AccessToken -> AuthenticatedUser option) 
         (user : PreAuthUser) = 
-
+        
         //Log them in
         makeNewLogin user.Id config.AccessTokenDurationInMins
         |> dbInsertNewLogin 
         |> Result.mapError (fun _ -> ErrorSavingToken)
+        >>= (getUser dbGetAuthenticatedUser)
 
 [<RequireQualifiedAccess>]
 module PasswordVerifier =
 
-    let verify password (user : PreAuthUser) = 
-        //If we got a user then always do the password check to hamper time based attacks
+    let verify password (user : PreAuthUser) =         
         let passwordVerified = 
             PasswordHasher.verifyHashedPassword(user.Email, user.PasswordHash, password)
 
         match passwordVerified with 
-        | true -> Ok user
+        | true  -> Ok user
         | false -> Error (PasswordMismatch user)
 
 [<RequireQualifiedAccess>]
@@ -90,56 +96,42 @@ module AuthenticationAttempts =
                 DateLockedOut = if isLockedOut then Some DateTime.UtcNow else None
             }
             |> dbUpdateLoginStatus
+        ()
 
-    let private onSuccess clearAttempts (newLogin : NewLogin) = 
+    let private onSuccess clearAttempts (user : AuthenticatedUser) = 
         //Clear any failed lockout attempts
-        clearAttempts newLogin.UserId 
-        newLogin.AccessToken
+        clearAttempts user.Id 
+        ()
 
     let private onFailure logFailure authError = 
         match authError with
         | PasswordMismatch user -> logFailure user 
-        | _ -> ()
+        | _                     -> ()
 
-        authError
-
-    let saveAuthAttempt config dbUpdateLoginStatus (authResult : Result<NewLogin, AuthFailure>) = 
+    let saveAuthAttempt config dbUpdateLoginStatus (authResult : Result<AuthenticatedUser, AuthFailure>) = 
         let clearAttempts = clearLoginAttempts dbUpdateLoginStatus 
         let logFailure = logFailedAttempt config dbUpdateLoginStatus 
 
-        match authResult with
-        | Ok newLogin -> Ok (onSuccess clearAttempts newLogin)
-        | Error authFailure -> Error (onFailure logFailure authFailure)
+        authResult |> either (onSuccess clearAttempts) (onFailure logFailure)
+
+        authResult
 
 [<RequireQualifiedAccess>]
 module AuthenticationService =
-
-    let private hashFakePassword() = 
-        let fakePwd = Guid.NewGuid().ToString() |> Encoding.UTF8.GetBytes |> Convert.ToBase64String
-        PasswordHasher.verifyHashedPassword("", fakePwd, "") |> ignore
-
     let private getPreAuthUser dbGetUserForAuth email = 
         match dbGetUserForAuth email with 
+        | Some user -> Ok user
         | None -> 
-            //No such user... do a fake password check (to take the same time as a real email) 
-            //so attackers cannot tell that the email doesn't exist. 
-            hashFakePassword()
+            //Do a fake password check (to hamper time based attacks). 
+            PasswordHasher.hashFakePassword()
             Error EmailNotInSystem
-        | Some user ->
-            Ok user
 
-    let private authFailureToString authError = 
-        let genericError = "Invalid email/password."
-        match authError with
-        | IsLockedOut msg -> msg
-        | _ -> genericError
-        
     let authenticate 
         (dbGetPreAuthUser : string -> PreAuthUser option)
         (verifyPassword : string -> PreAuthUser -> Result<PreAuthUser, AuthFailure>)
         (lockoutChecker : PreAuthUser -> Result<PreAuthUser, AuthFailure>)
-        (createLogin : PreAuthUser -> Result<NewLogin, AuthFailure>)
-        (updateUserLoginAttempts : Result<NewLogin, AuthFailure> -> Result<AccessToken, AuthFailure>)
+        (createLogin : PreAuthUser -> Result<AuthenticatedUser, AuthFailure>)
+        (saveLoginAttempt : Result<AuthenticatedUser, AuthFailure> -> Result<AuthenticatedUser, AuthFailure>)
         (email : string)
         (password : string) = 
 
@@ -147,8 +139,7 @@ module AuthenticationService =
         >>= verifyPassword password 
         >>= lockoutChecker
         >>= createLogin
-        |> updateUserLoginAttempts 
-        |> Result.mapError (fun err -> authFailureToString err) //Change any errors to a descriptive string
+        |> saveLoginAttempt 
 
     let getAuthenticatedUser 
         (dbGetAuthenticatedUser : AccessToken -> AuthenticatedUser option) 

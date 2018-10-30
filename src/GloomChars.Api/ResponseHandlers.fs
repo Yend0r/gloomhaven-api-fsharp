@@ -39,16 +39,7 @@ module ResponseHandlers =
         {
             Data : 'T
         }
-
-    let optionToAppResult opt = 
-        match opt with
-        | Some c -> Ok c
-        | None -> Error NotFound
-
-    let toAppResult (result : Result<'a,string>) : Result<'a,AppError> = 
-        result 
-        |> Result.mapError Msg
-
+        
     let wrapData data = { Data = data }
 
     let jsonList data = json (wrapData data)

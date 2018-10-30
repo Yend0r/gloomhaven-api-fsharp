@@ -9,9 +9,13 @@
     <Compile Include="Parse.fs" />
     <Compile Include="Validation.fs" />
     <Compile Include="Utils.fs" />
+    <Compile Include="JsonUtils.fs" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Dapper" Version="1.50.5" />
     <PackageReference Include="Npgsql" Version="4.0.3" />
-    <Compile Include="JsonUtils.fs" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Update="FSharp.Core" Version="4.5.*" />
+    <PackageReference Include="FSharp.Core" Version="4.5.2" />
   </ItemGroup>
 </Project>
