@@ -9,12 +9,12 @@ open FSharpPlus
 module LoginCreator =
 
     let private createAccessToken() = 
-        AccessToken(string (Guid.NewGuid())) 
+        (Guid.NewGuid()) |> string |> AccessToken 
 
     let private makeNewLogin userId tokenDuration = 
         {
             UserId = userId
-            AccessToken = createAccessToken() 
+            AccessToken = createAccessToken()
             AccessTokenExpiresAt = DateTime.UtcNow.AddMinutes(float tokenDuration) 
         }
 
@@ -117,6 +117,27 @@ module AuthenticationAttempts =
         authResult
 
 [<RequireQualifiedAccess>]
+module AuthUserService =
+    let private getPreAuthUser dbGetUserForAuth email = 
+        match dbGetUserForAuth email with 
+        | Some user -> Ok user
+        | None -> 
+            //Do a fake password check (to hamper time based attacks). 
+            PasswordHasher.hashFakePassword()
+            Error EmailNotInSystem
+
+    let getUserForAuth 
+        (dbGetPreAuthUser : string -> PreAuthUser option)
+        (verifyPassword : string -> PreAuthUser -> Result<PreAuthUser, AuthFailure>)
+        (lockoutChecker : PreAuthUser -> Result<PreAuthUser, AuthFailure>)
+        (email : string) 
+        (password : string) =
+
+        getPreAuthUser dbGetPreAuthUser email
+        >>= verifyPassword password 
+        >>= lockoutChecker
+
+[<RequireQualifiedAccess>]
 module AuthenticationService =
     let private getPreAuthUser dbGetUserForAuth email = 
         match dbGetUserForAuth email with 
@@ -127,17 +148,13 @@ module AuthenticationService =
             Error EmailNotInSystem
 
     let authenticate 
-        (dbGetPreAuthUser : string -> PreAuthUser option)
-        (verifyPassword : string -> PreAuthUser -> Result<PreAuthUser, AuthFailure>)
-        (lockoutChecker : PreAuthUser -> Result<PreAuthUser, AuthFailure>)
+        (getPreAuthUser : string -> string -> Result<PreAuthUser, AuthFailure>)
         (createLogin : PreAuthUser -> Result<AuthenticatedUser, AuthFailure>)
         (saveLoginAttempt : Result<AuthenticatedUser, AuthFailure> -> Result<AuthenticatedUser, AuthFailure>)
         (email : string)
         (password : string) = 
 
-        getPreAuthUser dbGetPreAuthUser email
-        >>= verifyPassword password 
-        >>= lockoutChecker
+        getPreAuthUser email password
         >>= createLogin
         |> saveLoginAttempt 
 

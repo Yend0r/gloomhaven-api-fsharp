@@ -26,6 +26,12 @@ module CompositionRoot =
         let private dbInsertNewLogin        = AuthenticationRepository.insertNewLogin db
         let private dbRevoke                = AuthenticationRepository.revokeToken db
 
+        let private getPreAuthUser = 
+            AuthUserService.getUserForAuth 
+                dbGetPreAuthUser
+                PasswordVerifier.verify 
+                (LockoutChecker.check config.Authentication)
+                
         let private authFailureToString authError = 
             match authError with
             | IsLockedOut msg -> msg
@@ -33,9 +39,7 @@ module CompositionRoot =
             
         let authenticate email password = 
             AuthenticationService.authenticate 
-                dbGetPreAuthUser
-                PasswordVerifier.verify 
-                (LockoutChecker.check config.Authentication)
+                getPreAuthUser
                 (LoginCreator.create config.Authentication dbInsertNewLogin dbGetAuthenticatedUser)
                 (AuthenticationAttempts.saveAuthAttempt config.Authentication dbUpdateLoginStatus)
                 email
