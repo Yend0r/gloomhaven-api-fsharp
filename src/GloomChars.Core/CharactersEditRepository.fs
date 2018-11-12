@@ -74,14 +74,14 @@ module internal CharactersEditSql =
             """
             DELETE FROM characters
             WHERE user_id = @user_id
-                AND id = @id;
+                AND id = @character_id;
 
             DELETE FROM character_perks
-            WHERE character_id = @id;
+            WHERE character_id = @character_id;
             """
             [ 
                 p "user_id" uId 
-                p "id" charId 
+                p "character_id" charId 
             ]
 
     let deletePerks characterId = 
@@ -110,6 +110,26 @@ module internal CharactersEditSql =
                 p "perk_id" perk.Id
                 p "quantity" perk.Quantity
             ]
+    let insertPerks characterId (perks : PerkUpdate list) = 
+        let (CharacterId charId) = characterId
+        let queryParams = 
+            perks
+            |> List.map (fun perk ->
+                [
+                    p "character_id" charId
+                    p "perk_id" perk.Id
+                    p "quantity" perk.Quantity
+                ])
+            |> List.toArray
+
+        sqlMulti
+            """
+            INSERT INTO character_perks
+                (character_id, perk_id, quantity)
+            VALUES 
+                (@character_id, @perk_id, @quantity)
+            """
+            queryParams
 
 [<RequireQualifiedAccess>]
 module CharactersEditRepository = 
@@ -124,8 +144,9 @@ module CharactersEditRepository =
         |> dbContext.Execute
         |> ignore
 
-        perks 
-        |> List.iter (insertPerk dbContext characterId)
+        CharactersEditSql.insertPerks characterId perks
+        |> dbContext.ExecuteMulti
+        |> ignore
 
     let insertNewCharacter (dbContext : IDbContext) (newCharacter : NewCharacter) = 
         CharactersEditSql.insertNewCharacter newCharacter

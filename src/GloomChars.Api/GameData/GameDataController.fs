@@ -11,11 +11,11 @@ module GameDataController =
     let listClasses (ctx : HttpContext) : HttpHandler = 
         GameDataSvc.gloomClasses
         |> map toViewModel
-        |> jsonList
+        |> toSuccessList
 
     let getClass (ctx : HttpContext) (className : string) : HttpHandler = 
         className
         |> GameDataSvc.getGloomClass
         |> map toViewModel
-        |> toJsonResponse "Class not found"
+        |> either toSuccess (toError "Class not found.")
 

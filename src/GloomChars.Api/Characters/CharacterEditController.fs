@@ -13,18 +13,16 @@ module CharacterEditController =
     let private validateNewCharacter (character : NewCharacterRequest) validationErrors = 
         validateRequiredString (character.Name, "name") []
         |> validateRequiredString (character.ClassName, "className") 
-        |> function
-        | [] -> Ok character
-        | errors -> Error (Msg (errorsToString errors))
+        |> toValidationResult character
+        |> Result.mapError Msg
 
     let private validateCharacterUpdate (character : CharacterUpdateRequest) validationErrors = 
         validateRequiredString (character.Name, "name") []
         |> validatePositiveInt (character.Experience, "experience") 
         |> validatePositiveInt (character.Gold, "gold") 
         |> validatePositiveInt (character.Achievements, "achievements") 
-        |> function
-        | [] -> Ok character
-        | errors -> Error (Msg (errorsToString errors))
+        |> toValidationResult character
+        |> Result.mapError Msg
 
     let private getGloomClassName (className : string) = 
         match GloomClassName.FromString className with
@@ -34,29 +32,33 @@ module CharacterEditController =
     let private toResourceUri (ctx : HttpContext) userId = 
         sprintf "%s/characters/%i" (ctx.Request.Host.ToString()) userId
 
-    let private mapToNewCharacter ctx character = 
+    let private mapToNewCharacter character userId = 
         Ok toNewCharacter
         <*> (validateNewCharacter character [])
         <*> (getGloomClassName character.ClassName)
-        <*> (WebAuthentication.getLoggedInUserId ctx)
+        <*> userId
 
-    let private mapToCharacterUpdate ctx character characterId = 
+    let private mapToCharacterUpdate character characterId userId = 
         Ok (toCharacterUpdate characterId)
         <*> (validateCharacterUpdate character [])
-        <*> (WebAuthentication.getLoggedInUserId ctx)
+        <*> userId
 
-    let addCharacter (ctx : HttpContext) (character : NewCharacterRequest) = 
-        mapToNewCharacter ctx character
+    // Controller handlers below -----
+
+    let addCharacter ctx (character : NewCharacterRequest) = 
+        WebAuthentication.getLoggedInUserId ctx
+        |> mapToNewCharacter character 
         >>= CharactersSvc.addCharacter 
         |> map (toResourceUri ctx)
-        |> toContentCreatedResponse "Failed to add character."
+        |> either toCreated (toError "Failed to add character.")
 
-    let updateCharacter (ctx : HttpContext) (character : CharacterUpdateRequest) (characterId : int) = 
-        mapToCharacterUpdate ctx character characterId
+    let updateCharacter ctx (character : CharacterUpdateRequest) (characterId : int) = 
+        WebAuthentication.getLoggedInUserId ctx
+        |> mapToCharacterUpdate character characterId
         >>= CharactersSvc.updateCharacter 
-        |> toSuccessNoContent "Failed to update character."
-        
-    let patchCharacter (ctx : HttpContext) (patch : CharacterPatchRequest) (characterId : int) = 
+        |> either toSuccessNoContent (toError "Failed to update character.")
+
+    let patchCharacter ctx (patch : CharacterPatchRequest) (characterId : int) = 
         let character = 
             WebAuthentication.getLoggedInUserId ctx
             >>= CharactersSvc.getCharacter (CharacterId characterId)
@@ -64,10 +66,10 @@ module CharacterEditController =
         Ok (mapPatchToUpdate patch)
         <*> character
         >>= CharactersSvc.updateCharacter 
-        |> toSuccessNoContent "Failed to patch character."
+        |> either toSuccessNoContent (toError "Failed to patch character.")
 
-    let deleteCharacter (ctx : HttpContext) (characterId : int) : HttpHandler = 
+    let deleteCharacter ctx (characterId : int) : HttpHandler = 
         WebAuthentication.getLoggedInUserId ctx
         |> map (CharactersSvc.deleteCharacter (CharacterId characterId))
-        |> toSuccessNoContent "Delete failed."
+        |> either toSuccessNoContent (toError "Delete failed.")
 

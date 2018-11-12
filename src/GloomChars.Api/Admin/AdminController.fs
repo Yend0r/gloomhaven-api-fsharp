@@ -8,13 +8,13 @@ module AdminController =
     open ResponseHandlers
     open FSharpPlus
     open AdminModels
-    
+
     let private validateNewUser (user : AddUserRequest) = 
         validateRequiredString (user.Email, "email") []
         |> validateRequiredString (user.Password, "password") 
         |> validateEmail user.Email 
         |> validatePassword user.Password
-        |> function
+        |> function 
         | [] -> Ok user
         | errors -> Error (Msg (errorsToString errors))
 
@@ -27,10 +27,10 @@ module AdminController =
         |> map toNewUser
         >>= UsersSvc.addUser
         |> map (toResourceUri ctx)
-        |> toContentCreatedResponse "Failed to add user."
+        |> either toCreated (toError "Failed to add user.")
         
     let listUsers (ctx : HttpContext) : HttpHandler = 
         UsersSvc.getUsers()
         |> map toUserViewModel
-        |> jsonList
+        |> toSuccessList
 

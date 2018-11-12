@@ -25,7 +25,7 @@ module AuthenticationModels =
             AccessTokenExpiresAt : DateTime
         }
 
-    let createLoginResponse (user : AuthenticatedUser) : LoginResponse = 
+    let toLoginResponse (user : AuthenticatedUser) : LoginResponse = 
         let (AccessToken token) = user.AccessToken
 
         {

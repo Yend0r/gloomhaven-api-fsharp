@@ -139,34 +139,27 @@ module AuthUserService =
 
 [<RequireQualifiedAccess>]
 module AuthenticationService =
-    let private getPreAuthUser dbGetUserForAuth email = 
-        match dbGetUserForAuth email with 
-        | Some user -> Ok user
-        | None -> 
-            //Do a fake password check (to hamper time based attacks). 
-            PasswordHasher.hashFakePassword()
-            Error EmailNotInSystem
 
     let authenticate 
-        (getPreAuthUser : string -> string -> Result<PreAuthUser, AuthFailure>)
-        (createLogin : PreAuthUser -> Result<AuthenticatedUser, AuthFailure>)
+        (getPreAuthUser   : string -> string -> Result<PreAuthUser, AuthFailure>)
+        (createLogin      : PreAuthUser -> Result<AuthenticatedUser, AuthFailure>)
         (saveLoginAttempt : Result<AuthenticatedUser, AuthFailure> -> Result<AuthenticatedUser, AuthFailure>)
         (email : string)
         (password : string) = 
 
-        getPreAuthUser email password
+        (email, password)
+        ||> getPreAuthUser 
         >>= createLogin
         |> saveLoginAttempt 
 
     let getAuthenticatedUser 
-        (dbGetAuthenticatedUser : AccessToken -> AuthenticatedUser option) 
+        (dbGetAuthUser : AccessToken -> AuthenticatedUser option)
         accessToken = 
 
-        match dbGetAuthenticatedUser accessToken with 
+        match dbGetAuthUser accessToken with 
         | None -> Error "Invalid access token."
         | Some user -> Ok user
 
     let revokeToken (dbRevoke : AccessToken -> unit) accessToken = 
         dbRevoke accessToken
 
-  

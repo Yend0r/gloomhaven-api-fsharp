@@ -1,6 +1,7 @@
 ﻿namespace GloomChars.Api
 
 open System
+open System.Text
 open Microsoft.AspNetCore.Http
 open Microsoft.AspNetCore.Authentication
 open System.Threading.Tasks
@@ -26,16 +27,21 @@ module BearerTokenAuth =
                 Claim(ClaimTypes.Role, role, ClaimValueTypes.String)
             ]
         (user, ClaimsIdentity(claims, authenticationScheme))  
-        |> ApplicationUser
+        |> TokenUser
 
     let private createAuthenticationTicket (user : AuthenticatedUser) =
         let principal = createClaimsPrincipal user
         AuthenticationTicket(principal, authenticationScheme)
 
-    let private getRequestHeader (request : HttpRequest) key = 
-        match request.Headers.TryGetValue key with
-        | true, value -> Ok (value.ToString())
-        | _ -> Error (sprintf "Header '%s' missing" key) 
+    let private getAuthorizationHeader (request : HttpRequest) = 
+        match request.Headers.TryGetValue "Authorization" with
+        | true, value -> value.ToString() |> Ok
+        | _ -> Error (Unauthorized "Authorization header not found.")
+
+    let private getAccessTokenFromHeader (authHeader : string) = 
+        if (authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+        then authHeader.Substring("Bearer ".Length).Trim() |> AccessToken |> Ok
+        else Error (Unauthorized "Authorization header not a bearer token.")
 
     let authenticationOptions (o : AuthenticationOptions) =
         o.DefaultAuthenticateScheme <- authenticationScheme
@@ -49,16 +55,14 @@ module BearerTokenAuth =
 
         override this.HandleAuthenticateAsync() = 
             Task.FromResult(
-                getRequestHeader this.Request authorizationHeader
-                |> map AccessToken
-                |> Result.mapError Unauthorized //Ensure error types are the same for the next line
+                this.Request
+                |> getAuthorizationHeader 
+                >>= getAccessTokenFromHeader
                 >>= AuthenticationSvc.getAuthenticatedUser 
                 |> map createAuthenticationTicket
-                |> function
-                | Ok ticket -> AuthenticateResult.Success(ticket)
-                | Error _ -> AuthenticateResult.NoResult()
+                |> either AuthenticateResult.Success (fun _ -> AuthenticateResult.NoResult())
             )
 
     type AuthenticationBuilder with
-        member xs.AddBearerTokenAuth(configureOptions) =
-            xs.AddScheme<BearerTokenAuthOptions, BearerTokenAuth>(authenticationScheme, configureOptions);
+        member xs.AddBearerToken() =
+            xs.AddScheme<BearerTokenAuthOptions, BearerTokenAuth>(authenticationScheme, fun _ -> ());

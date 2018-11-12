@@ -82,3 +82,8 @@ module Validation =
 
     let errorsToString (validationErrors : ValidationError list) = 
         List.map (fun e -> e.Message) validationErrors |> (String.concat " ")
+
+    let toValidationResult validItem (validationErrors : ValidationError list) = 
+        match validationErrors with
+        | [] -> Ok validItem
+        | errors -> Error (errorsToString errors)

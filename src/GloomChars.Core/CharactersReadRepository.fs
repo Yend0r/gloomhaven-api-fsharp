@@ -65,18 +65,17 @@ module internal CharactersReadSql =
                 achievements AS Achievements
             FROM characters
             WHERE user_id = @user_id
-                AND id = @id;
+                AND id = @character_id;
 
             SELECT perk_id AS PerkId,
                 quantity   AS Quantity
             FROM character_perks
-            WHERE character_id = @id
-            ORDER BY perk_id
-                
+            WHERE character_id = @character_id
+            ORDER BY perk_id                
             """
             [ 
                 p "user_id" uId 
-                p "id" charId 
+                p "character_id" charId 
             ]
 
 
@@ -93,7 +92,7 @@ module CharactersReadRepository =
 
     let private toPerk (allPerks : Perk list) (dbPerk : DbCharacterPerk) : Perk option = 
         allPerks 
-        |> List.tryFind(fun p -> p.Id.ToUpper() = dbPerk.PerkId.ToUpper())
+        |> List.tryFind(fun p -> String.Equals(p.Id, dbPerk.PerkId, StringComparison.OrdinalIgnoreCase))
         |> function
         | Some p -> Some { p with Quantity = dbPerk.Quantity }
         | None -> None
@@ -113,7 +112,7 @@ module CharactersReadRepository =
             Id = CharacterId dbCharacter.Id
             UserId = UserId dbCharacter.UserId
             Name = dbCharacter.Name
-            ClassName = getGloomClassName dbCharacter.Id dbCharacter.ClassName
+            ClassName = className
             Experience = dbCharacter.Experience
             Gold = dbCharacter.Gold
             Achievements = dbCharacter.Achievements

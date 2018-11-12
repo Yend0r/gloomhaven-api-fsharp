@@ -10,24 +10,14 @@ module ResponseHandlers =
 
     type ApiError =
         {
-            Title  : string
-            Detail : string
+            Message : string
+            Detail  : string
         }
-
-    type ApiErrors = 
-        {
-            Errors : ApiError list
-        }
-
-    let createApiError title detail = 
+        
+    let createApiError message detail = 
         { 
-            Errors = 
-            [ 
-                {
-                    Title  = title
-                    Detail = detail
-                }
-            ]
+            Message = message
+            Detail = detail
         }
 
     type SuccessMessage =
@@ -39,12 +29,6 @@ module ResponseHandlers =
         {
             Data : 'T
         }
-        
-    let wrapData data = { Data = data }
-
-    let jsonList data = json (wrapData data)
-
-    let badRequestError title detail = createApiError title detail
 
     let toMessage msg = { Message = msg }
 
@@ -61,13 +45,13 @@ module ResponseHandlers =
         setStatusCode 400 
         >=> json (createApiError title detail)
 
-    let badRequest (apiErros : ApiErrors) = 
-        setStatusCode 400 
-        >=> json apiErros
-
     let UNAUTHORIZED detail = 
         setStatusCode 401 
         >=> json (createApiError "Access Denied" detail)
+
+    let FORBIDDEN detail = 
+        setStatusCode 403 
+        >=> json (createApiError "Forbidden" detail)
 
     let NOT_FOUND detail = 
         setStatusCode 404 
@@ -77,28 +61,19 @@ module ResponseHandlers =
         setStatusCode 500 
         >=> json (createApiError title detail)
 
-    let private appErrorToResponse errorMsg appError = 
+    //--------
+
+    let toSuccess value = json value
+
+    let toSuccessList value = json { Data = value }
+
+    let toSuccessNoContent _ = SUCCESS_204
+
+    let toCreated location = SUCCESS_201 location
+
+    let toError errorMsg appError = 
         match appError with
         | Msg err -> BAD_REQUEST errorMsg err
         | NotFound -> NOT_FOUND errorMsg 
         | Unauthorized err -> UNAUTHORIZED err 
 
-    let toJsonResponse errorMsg result = 
-        match result with 
-        | Ok x -> json x
-        | Error error -> error |> appErrorToResponse errorMsg
-
-    let toJsonListResponse result = 
-        match result with 
-        | Ok x -> jsonList x
-        | Error error -> error |> appErrorToResponse ""
-
-    let toSuccessNoContent errorMsg result = 
-        match result with 
-        | Ok location -> SUCCESS_204 
-        | Error error -> error |> appErrorToResponse errorMsg
-
-    let toContentCreatedResponse errorMsg result = 
-        match result with 
-        | Ok location -> SUCCESS_201 location
-        | Error error -> error |> appErrorToResponse errorMsg

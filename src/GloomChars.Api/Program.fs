@@ -25,7 +25,7 @@ let errorHandler (ex : Exception) (logger : ILogger) =
 // ---------------------------------
 
 let configureCors (builder : CorsPolicyBuilder) =
-    builder.WithOrigins("http://localhost:8080")
+    builder.WithOrigins("http://127.0.0.1:8080")
            .AllowAnyMethod()
            .AllowAnyHeader()
            |> ignore
@@ -45,7 +45,7 @@ let configureServices (services : IServiceCollection) =
     services.AddCors()    
             .AddGiraffe() 
             .AddAuthentication(BearerTokenAuth.authenticationOptions)
-            .AddBearerTokenAuth(fun _ -> ())
+            .AddBearerToken()
             |> ignore
 
     // Use custom json serialiser settings for option types and null handling
@@ -69,7 +69,6 @@ let main _ =
     WebHostBuilder()
         .UseKestrel()
         .UseContentRoot(contentRoot)
-        .UseIISIntegration()
         .UseWebRoot(webRoot)
         .Configure(Action<IApplicationBuilder> configureApp)
         .ConfigureServices(configureServices)

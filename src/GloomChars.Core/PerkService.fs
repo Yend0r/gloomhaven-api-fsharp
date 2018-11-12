@@ -19,9 +19,7 @@ module PerkService =
 
     let private cardActionText (modCard : ModifierCard) = 
         match modCard.Action with
-        | Miss -> "MISS"
-        | Damage -> String.Empty
-        | MultiplyDamage _ -> String.Empty
+        | Miss  -> "MISS"
         | Disarm -> "DISARM"
         | Stun -> "STUN"
         | Poison -> "POISON" 
@@ -38,6 +36,8 @@ module PerkService =
         | Earth -> "EARTH"
         | Curse -> "CURSE"
         | RefreshItem -> "REFRESH AN ITEM"
+        | Damage -> String.Empty
+        | MultiplyDamage _ -> String.Empty
         | Push amount ->
             let (PushAmount value) = amount
             sprintf "PUSH %i" value
@@ -60,8 +60,8 @@ module PerkService =
 
     let private actionText (pcard : PerkCardAction) = 
         let num = numText pcard.NumCards
-        let dmg = cardDmgText pcard.Card
         let cards = numCardsText pcard.NumCards
+        let dmg = cardDmgText pcard.Card
         let action = cardActionText pcard.Card
         let draw = cardDrawText pcard.Card.DrawAnother
 

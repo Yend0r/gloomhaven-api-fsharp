@@ -36,7 +36,7 @@ module CompositionRoot =
             match authError with
             | IsLockedOut msg -> msg
             | _ -> "Invalid email/password."
-            
+
         let authenticate email password = 
             AuthenticationService.authenticate 
                 getPreAuthUser
