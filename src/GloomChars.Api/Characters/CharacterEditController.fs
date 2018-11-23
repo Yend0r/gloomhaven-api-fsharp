@@ -10,13 +10,13 @@ module CharacterEditController =
     open GloomChars.Common.Validation
     open CharacterEditModels 
 
-    let private validateNewCharacter (character : NewCharacterRequest) validationErrors = 
+    let private validateNewCharacter (character : NewCharacterRequest) = 
         validateRequiredString (character.Name, "name") []
         |> validateRequiredString (character.ClassName, "className") 
         |> toValidationResult character
         |> Result.mapError Msg
 
-    let private validateCharacterUpdate (character : CharacterUpdateRequest) validationErrors = 
+    let private validateCharacterUpdate (character : CharacterUpdateRequest) = 
         validateRequiredString (character.Name, "name") []
         |> validatePositiveInt (character.Experience, "experience") 
         |> validatePositiveInt (character.Gold, "gold") 
@@ -29,18 +29,18 @@ module CharacterEditController =
         | Some gloomClass -> Ok gloomClass
         | None -> Error (Msg "ClassName is invalid")
 
-    let private toResourceUri (ctx : HttpContext) userId = 
-        sprintf "%s/characters/%i" (ctx.Request.Host.ToString()) userId
+    let private toResourceUri (ctx : HttpContext) characterId = 
+        sprintf "%s/characters/%i" (ctx.Request.Host.ToString()) characterId
 
     let private mapToNewCharacter character userId = 
         Ok toNewCharacter
-        <*> (validateNewCharacter character [])
+        <*> (validateNewCharacter character)
         <*> (getGloomClassName character.ClassName)
         <*> userId
 
     let private mapToCharacterUpdate character characterId userId = 
         Ok (toCharacterUpdate characterId)
-        <*> (validateCharacterUpdate character [])
+        <*> (validateCharacterUpdate character)
         <*> userId
 
     // Controller handlers below -----

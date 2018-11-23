@@ -21,8 +21,8 @@ module DeckController =
     let newDeck (ctx : HttpContext) (newDeckRequest : NewDeckRequest) (characterId : int) : HttpHandler = 
         let action = 
             match newDeckRequest.Action.ToUpper() with
-            | "DRAW"      -> fun c -> c |> DeckSvc.drawCard  |> Ok
-            | "RESHUFFLE" -> fun c -> c |> DeckSvc.reshuffle |> Ok
+            | "DRAW"      -> fun c -> c |> (DeckSvc.drawCard >> Ok)
+            | "RESHUFFLE" -> fun c -> c |> (DeckSvc.reshuffle >> Ok)
             | _ -> fun _ -> sprintf "Invalid 'action': %s" newDeckRequest.Action |> Msg |> Error
 
         WebAuthentication.getLoggedInUserId ctx

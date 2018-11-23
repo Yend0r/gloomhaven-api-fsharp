@@ -11,13 +11,12 @@
     <Compile Include="DeckService.fs" />
     <Compile Include="PerkService.fs" />
     <Compile Include="CharactersService.fs" />
-  </ItemGroup>
+  </ItemGroup> 
   <ItemGroup>
     <ProjectReference Include="..\GloomChars.Common\GloomChars.Common.fsproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FSharpPlus" Version="1.0.0" />
     <PackageReference Update="FSharp.Core" Version="4.5.*" />
-    <PackageReference Include="FSharp.Core" Version="4.5.2" />
   </ItemGroup>
 </Project>

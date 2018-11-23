@@ -18,6 +18,6 @@ module CharacterReadController =
     let getCharacter (ctx : HttpContext) (id : int) : HttpHandler = 
         WebAuthentication.getLoggedInUserId ctx
         >>= CharactersSvc.getCharacter (CharacterId id)
-        |> Result.map toViewModel
+        |> map toViewModel
         |> either toSuccess (toError "Character not found")
 
