@@ -1,4 +1,4 @@
-﻿namespace GloomChars.Authentication
+﻿namespace GloomChars.Users
 
 [<RequireQualifiedAccess>]
 module internal UserSql = 
@@ -41,6 +41,19 @@ module internal UserSql =
             """
             [ p "email" email ]
 
+    let getUser id = 
+        sql
+            """
+            SELECT id as Id,
+                email as Email, 
+                is_locked_out as IsLockedOut,  
+                date_created as DateCreated, 
+                date_locked_out as DateLockedOut
+            FROM users
+            WHERE id = @id
+            """
+            [ p "id" id ]
+
     let getUserList = 
         sql
             """
@@ -82,6 +95,12 @@ module UserRepository =
 
     let getUserByEmail (dbContext : IDbContext) (email : string) : User option = 
         UserSql.getUserByEmail email
+        |> dbContext.Query<DbUser>
+        |> Array.tryHead
+        |> map mapToUser
+
+    let getUser (dbContext : IDbContext) (id : int) : User option = 
+        UserSql.getUser id
         |> dbContext.Query<DbUser>
         |> Array.tryHead
         |> map mapToUser

@@ -1,4 +1,4 @@
-﻿namespace GloomChars.Authentication
+﻿namespace GloomChars.Users
 
 [<RequireQualifiedAccess>]
 module UserService =  
@@ -32,3 +32,8 @@ module UserService =
 
     let getUsers (dbGetUsers : unit -> User list) () : User list = 
         dbGetUsers()
+
+    let getUser (dbGetUser : int -> User option) id : User option = 
+        dbGetUser id
+
+    

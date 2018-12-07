@@ -3,7 +3,7 @@
 open System
 open Xunit
 open FsUnit
-open GloomChars.Authentication
+open GloomChars.Users
 
 module AuthenticationTests = 
 

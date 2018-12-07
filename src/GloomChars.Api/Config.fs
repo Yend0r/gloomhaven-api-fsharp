@@ -3,7 +3,7 @@
 open System
 open System.IO
 open GloomChars.Common
-open GloomChars.Authentication
+open GloomChars.Users
 open Microsoft.Extensions.Configuration
 
 type ApiConfig = 

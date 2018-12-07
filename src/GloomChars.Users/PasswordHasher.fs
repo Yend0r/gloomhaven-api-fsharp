@@ -1,4 +1,4 @@
-﻿namespace GloomChars.Authentication
+﻿namespace GloomChars.Users
 
 [<RequireQualifiedAccess>]
 module PasswordHasher = 

@@ -2,7 +2,7 @@
 
 module AuthenticationModels =
     open System
-    open GloomChars.Authentication 
+    open GloomChars.Users 
 
     [<CLIMutable>]
     type LoginRequest =

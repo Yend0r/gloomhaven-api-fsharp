@@ -2,7 +2,9 @@
 
 module AdminModels = 
     open System
-    open GloomChars.Authentication
+    open GloomChars.Users
+    open GloomChars.Common.Validation
+    open ResponseHandlers
 
     [<CLIMutable>]
     type AddUserRequest =
@@ -32,3 +34,12 @@ module AdminModels =
             Email = user.Email
             Password = user.Password 
         }
+
+    let validateNewUser (user : AddUserRequest) = 
+        validateRequiredString (user.Email, "email") []
+        |> validateRequiredString (user.Password, "password") 
+        |> validateEmail user.Email 
+        |> validatePassword user.Password
+        |> function 
+        | [] -> Ok user
+        | errors -> Error (Msg (errorsToString errors))

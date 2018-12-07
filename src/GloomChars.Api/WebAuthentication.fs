@@ -6,7 +6,7 @@ open Microsoft.AspNetCore.Authentication
 open System.Threading.Tasks
 open System.Security.Claims
 open CompositionRoot
-open GloomChars.Authentication
+open GloomChars.Users
 open GloomChars.Core
 open FSharpPlus
 

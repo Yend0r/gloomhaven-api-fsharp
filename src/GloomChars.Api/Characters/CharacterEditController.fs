@@ -7,22 +7,8 @@ module CharacterEditController =
     open ResponseHandlers
     open FSharpPlus
     open CompositionRoot
-    open GloomChars.Common.Validation
     open CharacterEditModels 
-
-    let private validateNewCharacter (character : NewCharacterRequest) = 
-        validateRequiredString (character.Name, "name") []
-        |> validateRequiredString (character.ClassName, "className") 
-        |> toValidationResult character
-        |> Result.mapError Msg
-
-    let private validateCharacterUpdate (character : CharacterUpdateRequest) = 
-        validateRequiredString (character.Name, "name") []
-        |> validatePositiveInt (character.Experience, "experience") 
-        |> validatePositiveInt (character.Gold, "gold") 
-        |> validatePositiveInt (character.Achievements, "achievements") 
-        |> toValidationResult character
-        |> Result.mapError Msg
+    open CharacterReadModels
 
     let private getGloomClassName (className : string) = 
         match GloomClassName.FromString className with
@@ -32,29 +18,41 @@ module CharacterEditController =
     let private toResourceUri (ctx : HttpContext) characterId = 
         sprintf "%s/characters/%i" (ctx.Request.Host.ToString()) characterId
 
-    let private mapToNewCharacter character userId = 
-        Ok toNewCharacter
-        <*> (validateNewCharacter character)
-        <*> (getGloomClassName character.ClassName)
-        <*> userId
+    let private toCreatedResult (ctx : HttpContext) (characterViewModel : CharacterViewModel) : CreatedResult = 
+        {
+            Uri = toResourceUri ctx characterViewModel.Id
+            Obj = characterViewModel
+        }
 
-    let private mapToCharacterUpdate character characterId userId = 
+    let private getCharacter (ctx : HttpContext) (id : int) = 
+        WebAuthentication.getLoggedInUserId ctx
+        >>= CharactersSvc.getCharacter (CharacterId id)
+        |> map toViewModel
+
+    let private mapToNewCharacter character ctx = 
+        Ok toNewCharacter
+        <*> validateNewCharacter character
+        <*> getGloomClassName character.ClassName
+        <*> WebAuthentication.getLoggedInUserId ctx
+
+    let private mapToCharacterUpdate character characterId ctx = 
         Ok (toCharacterUpdate characterId)
-        <*> (validateCharacterUpdate character)
-        <*> userId
+        <*> validateCharacterUpdate character
+        <*> WebAuthentication.getLoggedInUserId ctx
 
     // Controller handlers below -----
 
     let addCharacter ctx (character : NewCharacterRequest) = 
-        WebAuthentication.getLoggedInUserId ctx
-        |> mapToNewCharacter character 
+        (character, ctx)
+        ||> mapToNewCharacter 
         >>= CharactersSvc.addCharacter 
-        |> map (toResourceUri ctx)
+        >>= (getCharacter ctx) // .Net seems to want to return the created item with a 201
+        |> map (toCreatedResult ctx)
         |> either toCreated (toError "Failed to add character.")
 
     let updateCharacter ctx (character : CharacterUpdateRequest) (characterId : int) = 
-        WebAuthentication.getLoggedInUserId ctx
-        |> mapToCharacterUpdate character characterId
+        (character, characterId, ctx)
+        |||> mapToCharacterUpdate 
         >>= CharactersSvc.updateCharacter 
         |> either toSuccessNoContent (toError "Failed to update character.")
 
@@ -63,7 +61,7 @@ module CharacterEditController =
             WebAuthentication.getLoggedInUserId ctx
             >>= CharactersSvc.getCharacter (CharacterId characterId)
 
-        Ok (mapPatchToUpdate patch)
+        Ok (mapPatchToUpdate patch) 
         <*> character
         >>= CharactersSvc.updateCharacter 
         |> either toSuccessNoContent (toError "Failed to patch character.")

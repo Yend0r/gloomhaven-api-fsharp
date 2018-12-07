@@ -3,7 +3,7 @@
 module CompositionRoot = 
     open GloomChars.Core
     open GloomChars.Common 
-    open GloomChars.Authentication
+    open GloomChars.Users
     open ResponseHandlers
 
     let private config = Config.config
@@ -57,6 +57,7 @@ module CompositionRoot =
 
         let private dbGetUserByEmail    = UserRepository.getUserByEmail db
         let private dbGetUsers          = UserRepository.getUsers db
+        let private dbGetUser           = UserRepository.getUser db
         let private dbInsertNewUser     = UserRepository.insertNewUser db
 
         let addUser newUser = 
@@ -64,6 +65,10 @@ module CompositionRoot =
             |> toAppResult
 
         let getUsers = UserService.getUsers dbGetUsers
+
+        let getUser userId = 
+            UserService.getUser dbGetUser userId
+            |> optionToAppResult
 
     module GameDataSvc = 
 

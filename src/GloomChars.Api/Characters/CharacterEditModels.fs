@@ -3,6 +3,8 @@
 module CharacterEditModels = 
     open GloomChars.Core
     open FSharpPlus
+    open GloomChars.Common.Validation
+    open ResponseHandlers
 
     [<CLIMutable>]
     type NewCharacterRequest = 
@@ -88,3 +90,17 @@ module CharacterEditModels =
             Achievements = getPatchProp patch.Achievements character.Achievements
             Perks        = perks
         }
+
+    let validateNewCharacter (character : NewCharacterRequest) = 
+        validateRequiredString (character.Name, "name") []
+        |> validateRequiredString (character.ClassName, "className") 
+        |> toValidationResult character
+        |> Result.mapError Msg
+
+    let validateCharacterUpdate (character : CharacterUpdateRequest) = 
+        validateRequiredString (character.Name, "name") []
+        |> validatePositiveInt (character.Experience, "experience") 
+        |> validatePositiveInt (character.Gold, "gold") 
+        |> validatePositiveInt (character.Achievements, "achievements") 
+        |> toValidationResult character
+        |> Result.mapError Msg

@@ -30,16 +30,15 @@ module ResponseHandlers =
             Data : 'T
         }
 
+    type CreatedResult = 
+        {
+            Uri : string
+            Obj : obj
+        }
+
     let toMessage msg = { Message = msg }
 
     let SUCCESS msg = json (toMessage msg)
-
-    let SUCCESS_201 location = 
-        setHttpHeader "Location" location
-        >=> setStatusCode 201
-
-    let SUCCESS_204 = 
-        Successful.NO_CONTENT
 
     let BAD_REQUEST title detail = 
         setStatusCode 400 
@@ -67,9 +66,14 @@ module ResponseHandlers =
 
     let toSuccessList value = json { Data = value }
 
-    let toSuccessNoContent _ = SUCCESS_204
+    //204
+    let toSuccessNoContent _ = 
+        Successful.NO_CONTENT 
 
-    let toCreated location = SUCCESS_201 location
+    //201
+    let toCreated createdResult = 
+        setHttpHeader "Location" createdResult.Uri
+        >=> Successful.CREATED createdResult.Obj
 
     let toError errorMsg appError = 
         match appError with
