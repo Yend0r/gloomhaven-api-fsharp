@@ -1,7 +1,7 @@
 ﻿namespace GloomChars.Users
 
 [<RequireQualifiedAccess>]
-module PasswordHasher = 
+module PasswordUtils = 
     open System
     open System.Text
     open Microsoft.AspNetCore.Identity
@@ -12,7 +12,7 @@ module PasswordHasher =
     // https://github.com/aspnet/Identity/blob/rel/2.0.0/src/Microsoft.Extensions.Identity.Core/PasswordHasher.cs
     type UserForHasher = { Email : string }
 
-    let hashPassword (email : string, password : string) = 
+    let hashPassword email password = 
         let userForHasher = { Email = email }
         let hasher = PasswordHasher()
         try
@@ -20,7 +20,7 @@ module PasswordHasher =
             |> Ok
         with _err -> Error "Error hashing password"
 
-    let verifyHashedPassword (email : string, hashedPassword : string, plainPassword : string) = 
+    let verifyPassword email hashedPassword plainPassword = 
         let hasher = PasswordHasher()
         let userForHasher = { Email = email }
         try
@@ -36,4 +36,4 @@ module PasswordHasher =
     //Fake password check (to hamper time based attacks). 
     let hashFakePassword() = 
         let fakePwd = Guid.NewGuid().ToString() |> Encoding.UTF8.GetBytes |> Convert.ToBase64String
-        verifyHashedPassword("", fakePwd, "") |> ignore
+        verifyPassword String.Empty fakePwd String.Empty |> ignore

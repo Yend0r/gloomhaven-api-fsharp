@@ -40,6 +40,5 @@ module AdminModels =
         |> validateRequiredString (user.Password, "password") 
         |> validateEmail user.Email 
         |> validatePassword user.Password
-        |> function 
-        | [] -> Ok user
-        | errors -> Error (Msg (errorsToString errors))
+        |> toValidationResult user
+        |> Result.mapError Msg

@@ -3,6 +3,8 @@
 module AuthenticationModels =
     open System
     open GloomChars.Users 
+    open GloomChars.Common.Validation
+    open ResponseHandlers
 
     [<CLIMutable>]
     type LoginRequest =
@@ -33,3 +35,17 @@ module AuthenticationModels =
             AccessToken          = token
             AccessTokenExpiresAt = user.AccessTokenExpiresAt
         }
+
+    let toPasswordUpdate (changePasswordRequest : ChangePasswordRequest) accessToken : PasswordUpdate = 
+       {
+            AccessToken = accessToken
+            OldPassword = changePasswordRequest.OldPassword
+            NewPassword = changePasswordRequest.NewPassword
+        }
+
+    let validateChangePasswordRequest (changePasswordRequest : ChangePasswordRequest) = 
+        validateRequiredString (changePasswordRequest.OldPassword, "oldPassword") []
+        |> validateRequiredString (changePasswordRequest.NewPassword, "newPassword") 
+        |> validatePassword changePasswordRequest.NewPassword
+        |> toValidationResult changePasswordRequest
+        |> Result.mapError Msg

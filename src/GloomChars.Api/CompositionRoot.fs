@@ -20,38 +20,42 @@ module CompositionRoot =
 
     module AuthenticationSvc = 
 
-        let private dbGetPreAuthUser        = AuthenticationRepository.getUserForAuth db
-        let private dbGetAuthenticatedUser  = AuthenticationRepository.getAuthenticatedUser db
-        let private dbUpdateLoginStatus     = AuthenticationRepository.updateLoginStatus db
-        let private dbInsertNewLogin        = AuthenticationRepository.insertNewLogin db
-        let private dbRevoke                = AuthenticationRepository.revokeToken db
+        let private authConfig = config.Authentication
 
-        let private getPreAuthUser = 
-            AuthUserService.getUserForAuth 
-                dbGetPreAuthUser
-                PasswordVerifier.verify 
-                (LockoutChecker.check config.Authentication)
-                
-        let private authFailureToString authError = 
-            match authError with
-            | IsLockedOut msg -> msg
-            | _ -> "Invalid email/password."
+        // Using an interface here ends up nicer... implemented as an object expression
+        let private authRepo = 
+            { new IAuthenticationRepository with 
+                member __.GetAuthenticatedUser token = AuthenticationRepository.getAuthenticatedUser db token
+                member __.GetUserForAuth email       = AuthenticationRepository.getRegisteredUserByEmail db email
+                member __.InsertNewLogin newLogin    = AuthenticationRepository.insertNewLogin db newLogin
+                member __.UpdateLoginStatus status   = AuthenticationRepository.updateLoginStatus db status }
+
+        let private authFailureToAppError authFailure = 
+            match authFailure with
+            | IsLockedOut msg -> Msg msg
+            | _ -> Msg "Invalid email/password."
 
         let authenticate email password = 
-            AuthenticationService.authenticate 
-                getPreAuthUser
-                (LoginCreator.create config.Authentication dbInsertNewLogin dbGetAuthenticatedUser)
-                (AuthenticationAttempts.saveAuthAttempt config.Authentication dbUpdateLoginStatus)
-                email
-                password
-            |> Result.mapError authFailureToString //Change any errors to a descriptive string
-            |> toAppResult
+            AuthenticationService.authenticate authConfig authRepo email password
+            |> Result.mapError authFailureToAppError
 
-        let getAuthenticatedUser accessToken = 
-            AuthenticationService.getAuthenticatedUser dbGetAuthenticatedUser accessToken
-            |> toAppResult
+        let getAuthenticatedUser = 
+            AuthenticationRepository.getAuthenticatedUser db
+            |> AuthenticationService.getAuthenticatedUser 
+            >> toAppResult
 
-        let revokeToken = AuthenticationService.revokeToken dbRevoke
+        let revokeToken = 
+            AuthenticationRepository.revokeToken db
+            |> AuthenticationService.revokeToken 
+
+        
+        let private dbGetRegisteredUserByToken = AuthenticationRepository.getRegisteredUserByToken db 
+        let private dbUpdatePassword = AuthenticationRepository.updatePassword db 
+
+        let changePassword =
+            (dbGetRegisteredUserByToken, dbUpdatePassword)
+            ||> AuthenticationService.changePassword
+            >> toAppResult
 
     module UsersSvc = 
 
@@ -60,9 +64,9 @@ module CompositionRoot =
         let private dbGetUser           = UserRepository.getUser db
         let private dbInsertNewUser     = UserRepository.insertNewUser db
 
-        let addUser newUser = 
-            UserService.addUser dbGetUserByEmail dbInsertNewUser newUser
-            |> toAppResult
+        let addUser = 
+            UserService.addUser dbGetUserByEmail dbInsertNewUser 
+            >> toAppResult
 
         let getUsers = UserService.getUsers dbGetUsers
 
@@ -92,13 +96,13 @@ module CompositionRoot =
 
         let getCharacters = CharactersService.getCharacters dbGetCharacters
 
-        let addCharacter newCharacter = 
-            CharactersService.addCharacter dbInsertNewCharacter newCharacter
-            |> toAppResult
+        let addCharacter  = 
+            CharactersService.addCharacter dbInsertNewCharacter 
+            >> toAppResult
 
-        let updateCharacter characterUpdate = 
-            CharactersService.updateCharacter dbGetCharacter dbUpdateCharacter characterUpdate
-            |> toAppResult
+        let updateCharacter  = 
+            CharactersService.updateCharacter dbGetCharacter dbUpdateCharacter 
+            >> toAppResult
 
         let deleteCharacter characterId userId = 
             CharactersService.deleteCharacter dbGetCharacter dbDeleteCharacter characterId userId
@@ -106,9 +110,9 @@ module CompositionRoot =
 
     module DeckSvc = 
 
-        let private dbGetDiscards        = DeckRepository.getDiscards db
-        let private dbInsertDiscard      = DeckRepository.insertDiscard db
-        let private dbDeleteDiscards     = DeckRepository.deleteDiscards db
+        let private dbGetDiscards    = DeckRepository.getDiscards db
+        let private dbInsertDiscard  = DeckRepository.insertDiscard db
+        let private dbDeleteDiscards = DeckRepository.deleteDiscards db
 
         let getDeck = DeckService.getDeck dbGetDiscards 
 

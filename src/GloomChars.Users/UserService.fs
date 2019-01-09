@@ -16,9 +16,9 @@ module UserService =
         match (dbGetUser newUser.Email) with
         | Some _ -> Error "A user account with that email already exists."
         | None -> Ok newUser
-
+    
     let private hashPassword (newUser : NewUser) = 
-        PasswordHasher.hashPassword(newUser.Email, newUser.Password)
+        PasswordUtils.hashPassword newUser.Email newUser.Password
 
     let addUser 
         (dbGetUser : string -> User option)
@@ -26,14 +26,13 @@ module UserService =
         (newUser : NewUser) = 
 
         validateInput newUser
-        >>= (checkIfEmailExists dbGetUser)
+        >>= checkIfEmailExists dbGetUser
         >>= hashPassword 
-        >>= (dbInsertNewUser newUser.Email) 
+        >>= dbInsertNewUser newUser.Email
 
     let getUsers (dbGetUsers : unit -> User list) () : User list = 
         dbGetUsers()
 
     let getUser (dbGetUser : int -> User option) id : User option = 
         dbGetUser id
-
-    
+  

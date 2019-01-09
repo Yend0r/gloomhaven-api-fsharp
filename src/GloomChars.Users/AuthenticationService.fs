@@ -18,10 +18,10 @@ module LoginCreator =
             AccessTokenExpiresAt = DateTime.UtcNow.AddMinutes(float tokenDuration) 
         }
 
-    let private getUser dbGetAuthenticatedUser newLogin = 
+    let private getUser dbGetAuthenticatedUser (newLogin : NewLogin) = 
         match dbGetAuthenticatedUser newLogin.AccessToken with 
         | Some user -> Ok user
-        | None -> Error AuthUserNotFound //This would be very weird
+        | None -> Error InvalidAccessToken //This would be very weird
 
     let create
         (config : AuthenticationConfig) 
@@ -38,11 +38,8 @@ module LoginCreator =
 [<RequireQualifiedAccess>]
 module PasswordVerifier =
 
-    let verify password (user : PreAuthUser) =         
-        let passwordVerified = 
-            PasswordHasher.verifyHashedPassword(user.Email, user.PasswordHash, password)
-
-        match passwordVerified with 
+    let verify plainPassword (user : PreAuthUser) = 
+        match PasswordUtils.verifyPassword plainPassword user.Email user.PasswordHash with 
         | true  -> Ok user
         | false -> Error (PasswordMismatch user)
 
@@ -118,48 +115,83 @@ module AuthenticationAttempts =
 
 [<RequireQualifiedAccess>]
 module AuthUserService =
-    let private getPreAuthUser dbGetUserForAuth email = 
-        match dbGetUserForAuth email with 
-        | Some user -> Ok user
-        | None -> 
-            //Do a fake password check (to hamper time based attacks). 
-            PasswordHasher.hashFakePassword()
-            Error EmailNotInSystem
 
     let getUserForAuth 
         (dbGetPreAuthUser : string -> PreAuthUser option)
-        (verifyPassword : string -> PreAuthUser -> Result<PreAuthUser, AuthFailure>)
-        (lockoutChecker : PreAuthUser -> Result<PreAuthUser, AuthFailure>)
-        (email : string) 
-        (password : string) =
+        (email : string) =
 
-        getPreAuthUser dbGetPreAuthUser email
-        >>= verifyPassword password 
-        >>= lockoutChecker
+        dbGetPreAuthUser email
 
 [<RequireQualifiedAccess>]
 module AuthenticationService =
 
+    let private getPreAuthUser dbGetUserForAuth email = 
+        match dbGetUserForAuth email with 
+        | Some user -> 
+            Ok user
+        | None -> 
+            //Do a fake password check (to hamper time based attacks). 
+            PasswordUtils.hashFakePassword()
+            Error EmailNotInSystem
+
     let authenticate 
-        (getPreAuthUser   : string -> string -> Result<PreAuthUser, AuthFailure>)
-        (createLogin      : PreAuthUser -> Result<AuthenticatedUser, AuthFailure>)
-        (saveLoginAttempt : Result<AuthenticatedUser, AuthFailure> -> Result<AuthenticatedUser, AuthFailure>)
+        (config : AuthenticationConfig)
+        (repo : IAuthenticationRepository)
         (email : string)
         (password : string) = 
 
-        (email, password)
-        ||> getPreAuthUser 
-        >>= createLogin
+        let getUserByEmail = getPreAuthUser repo.GetUserForAuth 
+        let verifyPassword = PasswordVerifier.verify password
+        let checkIfLockedOut = LockoutChecker.check config
+        let createNewLogin = LoginCreator.create config repo.InsertNewLogin repo.GetAuthenticatedUser
+        let saveLoginAttempt = AuthenticationAttempts.saveAuthAttempt config repo.UpdateLoginStatus
+
+        email
+        |> getUserByEmail
+        >>= verifyPassword
+        >>= checkIfLockedOut
+        >>= createNewLogin
         |> saveLoginAttempt 
 
     let getAuthenticatedUser 
-        (dbGetAuthUser : AccessToken -> AuthenticatedUser option)
-        accessToken = 
+        (dbGetAuthUser : AccessToken -> AuthenticatedUser option) 
+        (accessToken : AccessToken)= 
 
         match dbGetAuthUser accessToken with 
         | None -> Error "Invalid access token."
         | Some user -> Ok user
 
-    let revokeToken (dbRevoke : AccessToken -> unit) accessToken = 
+    let revokeToken 
+        (dbRevoke : AccessToken -> unit)
+        (accessToken : AccessToken) = 
         dbRevoke accessToken
 
+    let changePassword 
+        (dbGetUserByToken : AccessToken -> PreAuthUser option)
+        (dbUpdatePassword : NewPassword -> int)
+        (passwordUpdate : PasswordUpdate) = 
+
+        let toNewPassword plainPassword (user : PreAuthUser) = 
+            PasswordUtils.hashPassword user.Email plainPassword
+            |> map (fun p -> { UserId = user.Id; PasswordHash = p }) 
+
+        let getPreAuthUserByToken token = 
+            dbGetUserByToken token
+            |> function 
+            | Some user -> Ok user
+            | None -> Error "Invalid access token"
+
+        let verifyOldPassword = 
+            PasswordVerifier.verify passwordUpdate.OldPassword
+            >> Result.mapError (fun _ -> "Invalid password")
+
+        let hashPassword plainPassword (user : PreAuthUser) = 
+            PasswordUtils.hashPassword user.Email plainPassword
+
+        passwordUpdate.AccessToken
+        |> getPreAuthUserByToken 
+        >>= verifyOldPassword
+        >>= toNewPassword passwordUpdate.NewPassword
+        |> map dbUpdatePassword 
+
+                

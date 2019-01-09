@@ -104,7 +104,7 @@ module AuthenticationTests =
         | PasswordMismatch _ -> "PasswordMismatch"
         | ErrorSavingToken -> "ErrorSavingToken" 
         | EmailNotInSystem -> "EmailNotInSystem"
-        | AuthUserNotFound -> "AuthUserNotFound"
+        | InvalidAccessToken -> "InvalidAccessToken"
 
     //
     // LoginCreator tests ----------------------------------

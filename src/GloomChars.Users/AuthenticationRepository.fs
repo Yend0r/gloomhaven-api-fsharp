@@ -8,21 +8,29 @@ open FSharpPlus
 [<RequireQualifiedAccess>]
 module internal AuthenticationSql = 
 
+    let private getUserSql = 
+        """
+        SELECT id as Id,
+            email as Email, 
+            password_hash as PasswordHash, 
+            is_locked_out as IsLockedOut, 
+            login_attempt_number as LoginAttemptNumber, 
+            date_created as DateCreated, 
+            date_updated as DateUpdated,
+            date_locked_out as DateLockedOut
+        FROM users
+        """
+
     let getUserByEmail email = 
         sql
-            """
-            SELECT id as Id,
-                email as Email, 
-                password_hash as PasswordHash, 
-                is_locked_out as IsLockedOut, 
-                login_attempt_number as LoginAttemptNumber, 
-                date_created as DateCreated, 
-                date_updated as DateUpdated,
-                date_locked_out as DateLockedOut
-            FROM users
-            WHERE email = @email
-            """
+            (getUserSql + "WHERE email = @email")
             [ p "email" email ]
+
+    let getUserByAccessToken accessToken = 
+        let (AccessToken token) = accessToken
+        sql
+            (getUserSql + "WHERE access_token = @access_token")
+            [ p "access_token" token ]
 
     let insertNewLogin (newLogin : NewLogin) = 
         let (AccessToken token) = newLogin.AccessToken
@@ -95,6 +103,19 @@ module internal AuthenticationSql =
                 p "access_token" accessToken
             ]
 
+    let updatePassword userId passwordHash = 
+        sql
+            """
+            UPDATE users
+            SET password_hash = @password_hash,
+                date_updated = current_timestamp
+            WHERE id = @id
+            """
+            [
+                p "id" userId
+                p "password_hash" passwordHash
+            ]
+
 [<RequireQualifiedAccess>]
 module AuthenticationRepository = 
 
@@ -118,8 +139,14 @@ module AuthenticationRepository =
             IsSystemAdmin = dbUser.IsSystemAdmin
         }
 
-    let getUserForAuth (dbContext : IDbContext) (email : string) : PreAuthUser option = 
+    let getRegisteredUserByEmail (dbContext : IDbContext) (email : string) : PreAuthUser option = 
         AuthenticationSql.getUserByEmail email
+        |> dbContext.Query<DbPreAuthUser>
+        |> Array.tryHead
+        |> map mapToPreAuthUser
+
+    let getRegisteredUserByToken (dbContext : IDbContext) (accessToken : AccessToken) : PreAuthUser option = 
+        AuthenticationSql.getUserByAccessToken accessToken
         |> dbContext.Query<DbPreAuthUser>
         |> Array.tryHead
         |> map mapToPreAuthUser
@@ -150,3 +177,7 @@ module AuthenticationRepository =
         AuthenticationSql.revoke token
         |> dbContext.Execute
         |> ignore
+
+    let updatePassword (dbContext : IDbContext) (newPassword : NewPassword)  = 
+        AuthenticationSql.updatePassword newPassword.UserId newPassword.PasswordHash
+        |> dbContext.Execute

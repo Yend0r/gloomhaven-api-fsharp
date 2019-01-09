@@ -7,7 +7,12 @@ module AuthenticationController =
     open FSharpPlus
     open ResponseHandlers
     open AuthenticationModels
-    
+
+    let private mapToPasswordUpdate changePasswordRequest ctx = 
+        Ok toPasswordUpdate
+        <*> validateChangePasswordRequest changePasswordRequest
+        <*> WebAuthentication.getLoggedInUserAccessToken ctx
+
     let login ctx (loginRequest : LoginRequest) : HttpHandler =
         (loginRequest.Email, loginRequest.Password)
         ||> AuthenticationSvc.authenticate 
@@ -20,6 +25,7 @@ module AuthenticationController =
         |> either toSuccessNoContent (toError "Logout failed. No credentials supplied.")
 
     let changePassword ctx (changePasswordRequest : ChangePasswordRequest) : HttpHandler = 
-        BAD_REQUEST "Not implemented" ""
-
-
+        (changePasswordRequest, ctx)
+        ||> mapToPasswordUpdate 
+        >>= AuthenticationSvc.changePassword 
+        |> either toSuccessNoContent (toError "Failed to update password.")

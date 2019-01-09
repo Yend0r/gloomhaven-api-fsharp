@@ -62,7 +62,7 @@ type AuthFailure =
     | PasswordMismatch of PreAuthUser
     | IsLockedOut of string
     | ErrorSavingToken
-    | AuthUserNotFound
+    | InvalidAccessToken
 
 type DbAuthenticatedUser = 
     {
@@ -113,3 +113,23 @@ type LoginStatusUpdate =
         IsLockedOut     : bool
         DateLockedOut   : DateTime option
     }
+
+type PasswordUpdate = 
+    {
+        AccessToken : AccessToken
+        OldPassword : string
+        NewPassword : string
+    }
+
+type NewPassword = 
+    {
+        UserId       : int
+        PasswordHash : string
+    }
+
+// Using an interface here ends up nicer... practicality is good
+type IAuthenticationRepository = 
+    abstract member GetAuthenticatedUser : AccessToken -> AuthenticatedUser option
+    abstract member GetUserForAuth : string -> PreAuthUser option
+    abstract member InsertNewLogin : NewLogin -> Result<NewLogin, string>
+    abstract member UpdateLoginStatus : LoginStatusUpdate -> unit

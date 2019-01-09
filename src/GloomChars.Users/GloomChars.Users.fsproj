@@ -4,7 +4,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Types.fs" />
-    <Compile Include="PasswordHasher.fs" />
+    <Compile Include="PasswordUtils.fs" />
     <Compile Include="UserRepository.fs" />
     <Compile Include="UserService.fs" />
     <Compile Include="AuthenticationRepository.fs" />
