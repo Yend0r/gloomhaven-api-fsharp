@@ -56,7 +56,7 @@ module CharacterEditController =
         }
         |> either toSuccessNoContent (toError "Failed to update character.")
 
-    let patchCharacterAlt ctx (patch : CharacterPatchRequest) (characterId : int) = 
+    let patchCharacter ctx (patch : CharacterPatchRequest) (characterId : int) = 
         result {
             let! userId = WebAuthentication.getLoggedInUserId ctx
             let! character = CharactersSvc.getCharacter (CharacterId characterId) userId
