@@ -29,7 +29,7 @@ module CharactersService =
         dbGetCharacter character.Id character.UserId
         |> function 
         | Some c -> 
-            Ok (dbUpdateCharacter { character with Perks = toValidPerks character.Perks c.ClassName })
+            dbUpdateCharacter { character with Perks = toValidPerks character.Perks c.ClassName }
         | None -> 
             Error "Character not found."
 

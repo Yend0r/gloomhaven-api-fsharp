@@ -8,6 +8,7 @@
     <Compile Include="Validation.fs" />
     <Compile Include="Utils.fs" />
     <Compile Include="JsonUtils.fs" />
+    <Compile Include="ResultBuilder.fs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Dapper" Version="1.50.5" />

@@ -9,6 +9,7 @@ module CharacterEditController =
     open CompositionRoot
     open CharacterEditModels 
     open CharacterReadModels
+    open GloomChars.Common.ResultExpr
 
     let private getGloomClassName (className : string) = 
         match GloomClassName.FromString className with
@@ -24,46 +25,44 @@ module CharacterEditController =
             Obj = characterViewModel
         }
 
-    let private getCharacter (ctx : HttpContext) (id : int) = 
-        WebAuthentication.getLoggedInUserId ctx
-        >>= CharactersSvc.getCharacter (CharacterId id)
+    let private getCharacterViewModel (id : int) userId  = 
+        CharactersSvc.getCharacter (CharacterId id) userId
         |> map toViewModel
-
-    let private mapToNewCharacter character ctx = 
-        Ok toNewCharacter
-        <*> validateNewCharacter character
-        <*> getGloomClassName character.ClassName
-        <*> WebAuthentication.getLoggedInUserId ctx
-
-    let private mapToCharacterUpdate character characterId ctx = 
-        Ok (toCharacterUpdate characterId)
-        <*> validateCharacterUpdate character
-        <*> WebAuthentication.getLoggedInUserId ctx
 
     // Controller handlers below -----
 
     let addCharacter ctx (character : NewCharacterRequest) = 
-        (character, ctx)
-        ||> mapToNewCharacter 
-        >>= CharactersSvc.addCharacter 
-        >>= (getCharacter ctx) // .Net seems to want to return the created item with a 201
-        |> map (toCreatedResult ctx)
+        result {
+            let! userId = WebAuthentication.getLoggedInUserId ctx
+            let! validCharacter = validateNewCharacter character
+            let! gloomClassName = getGloomClassName character.ClassName
+            let newCharacter = toNewCharacter validCharacter gloomClassName userId
+
+            let! characterId = CharactersSvc.addCharacter newCharacter
+
+            // .Net wants to return the created item with a 201, so get the item
+            let! viewModel = getCharacterViewModel characterId userId 
+
+            return toCreatedResult ctx viewModel
+        }
         |> either toCreated (toError "Failed to add character.")
 
     let updateCharacter ctx (character : CharacterUpdateRequest) (characterId : int) = 
-        (character, characterId, ctx)
-        |||> mapToCharacterUpdate 
-        >>= CharactersSvc.updateCharacter 
+        result {
+            let! userId = WebAuthentication.getLoggedInUserId ctx
+            let! validCharacter = validateCharacterUpdate character
+            let update = toCharacterUpdate characterId validCharacter userId
+            return! CharactersSvc.updateCharacter update
+        }
         |> either toSuccessNoContent (toError "Failed to update character.")
 
-    let patchCharacter ctx (patch : CharacterPatchRequest) (characterId : int) = 
-        let character = 
-            WebAuthentication.getLoggedInUserId ctx
-            >>= CharactersSvc.getCharacter (CharacterId characterId)
-
-        Ok (mapPatchToUpdate patch) 
-        <*> character
-        >>= CharactersSvc.updateCharacter 
+    let patchCharacterAlt ctx (patch : CharacterPatchRequest) (characterId : int) = 
+        result {
+            let! userId = WebAuthentication.getLoggedInUserId ctx
+            let! character = CharactersSvc.getCharacter (CharacterId characterId) userId
+            let update = mapPatchToUpdate patch character
+            return! CharactersSvc.updateCharacter update            
+        }
         |> either toSuccessNoContent (toError "Failed to patch character.")
 
     let deleteCharacter ctx (characterId : int) : HttpHandler = 
