@@ -39,8 +39,8 @@ module AuthenticationModels =
     let toPasswordUpdate (changePasswordRequest : ChangePasswordRequest) accessToken : PasswordUpdate = 
        {
             AccessToken = accessToken
-            OldPassword = changePasswordRequest.OldPassword
-            NewPassword = changePasswordRequest.NewPassword
+            OldPassword = OldPassword changePasswordRequest.OldPassword
+            NewPassword = NewPassword changePasswordRequest.NewPassword
         }
 
     let validateChangePasswordRequest (changePasswordRequest : ChangePasswordRequest) = 

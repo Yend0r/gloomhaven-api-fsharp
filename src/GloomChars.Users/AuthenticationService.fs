@@ -38,8 +38,8 @@ module LoginCreator =
 [<RequireQualifiedAccess>]
 module PasswordVerifier =
 
-    let verify plainPassword (user : PreAuthUser) = 
-        match PasswordUtils.verifyPassword plainPassword user.Email user.PasswordHash with 
+    let verify (plainPassword : PlainPassword) (user : PreAuthUser) = 
+        match PasswordUtils.verifyPassword user.Email user.PasswordHash plainPassword with 
         | true  -> Ok user
         | false -> Error (PasswordMismatch user)
 
@@ -138,7 +138,7 @@ module AuthenticationService =
         (config : AuthenticationConfig)
         (repo : IAuthenticationRepository)
         (email : string)
-        (password : string) = 
+        (password : PlainPassword) = 
 
         let getUserByEmail = getPreAuthUser repo.GetUserForAuth 
         let verifyPassword = PasswordVerifier.verify password
@@ -168,12 +168,8 @@ module AuthenticationService =
 
     let changePassword 
         (dbGetUserByToken : AccessToken -> PreAuthUser option)
-        (dbUpdatePassword : NewPassword -> int)
+        (dbUpdatePassword : NewPasswordInfo -> int)
         (passwordUpdate : PasswordUpdate) = 
-
-        let toNewPassword plainPassword (user : PreAuthUser) = 
-            PasswordUtils.hashPassword user.Email plainPassword
-            |> map (fun p -> { UserId = user.Id; PasswordHash = p }) 
 
         let getPreAuthUserByToken token = 
             dbGetUserByToken token
@@ -181,8 +177,14 @@ module AuthenticationService =
             | Some user -> Ok user
             | None -> Error "Invalid access token"
 
-        let verifyOldPassword = 
-            PasswordVerifier.verify passwordUpdate.OldPassword
+        let toNewPasswordInfo (newPassword : NewPassword) (user : PreAuthUser) = 
+            let (NewPassword newPwd) = newPassword
+            PasswordUtils.hashPassword user.Email (PlainPassword newPwd)
+            |> map (fun p -> { UserId = user.Id; PasswordHash = p }) 
+
+        let verifyOldPassword (oldPassword : OldPassword) = 
+            let (OldPassword oldPwd) = passwordUpdate.OldPassword
+            PasswordVerifier.verify (PlainPassword oldPwd)
             >> Result.mapError (fun _ -> "Invalid password")
 
         let hashPassword plainPassword (user : PreAuthUser) = 
@@ -190,8 +192,8 @@ module AuthenticationService =
 
         passwordUpdate.AccessToken
         |> getPreAuthUserByToken 
-        >>= verifyOldPassword
-        >>= toNewPassword passwordUpdate.NewPassword
+        >>= verifyOldPassword passwordUpdate.OldPassword
+        >>= toNewPasswordInfo passwordUpdate.NewPassword
         |> map dbUpdatePassword 
 
                 

@@ -36,7 +36,7 @@ module CompositionRoot =
             | _ -> Msg "Invalid email/password."
 
         let authenticate email password = 
-            AuthenticationService.authenticate authConfig authRepo email password
+            AuthenticationService.authenticate authConfig authRepo email (PlainPassword password)
             |> Result.mapError authFailureToAppError
 
         let getAuthenticatedUser = 

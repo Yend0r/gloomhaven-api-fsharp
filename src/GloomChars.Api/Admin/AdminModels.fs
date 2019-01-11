@@ -32,7 +32,7 @@ module AdminModels =
     let toNewUser (user : AddUserRequest) : NewUser = 
         { 
             Email = user.Email
-            Password = user.Password 
+            Password = PlainPassword user.Password 
         }
 
     let validateNewUser (user : AddUserRequest) = 

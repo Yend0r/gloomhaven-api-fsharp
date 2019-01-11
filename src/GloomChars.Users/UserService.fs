@@ -6,8 +6,10 @@ module UserService =
     open GloomChars.Common
 
     let private validateInput (newUser : NewUser) = 
+        let (PlainPassword plainPwd) = newUser.Password
+
         Validation.validateEmail newUser.Email []
-        |> Validation.validatePassword newUser.Password
+        |> Validation.validatePassword plainPwd
         |> function
         | [] -> Ok newUser
         | errors -> Error (Validation.errorsToString errors)
@@ -16,13 +18,13 @@ module UserService =
         match (dbGetUser newUser.Email) with
         | Some _ -> Error "A user account with that email already exists."
         | None -> Ok newUser
-    
+
     let private hashPassword (newUser : NewUser) = 
         PasswordUtils.hashPassword newUser.Email newUser.Password
 
     let addUser 
         (dbGetUser : string -> User option)
-        (dbInsertNewUser : string -> string -> Result<int, string>)
+        (dbInsertNewUser : string -> HashedPassword -> Result<int, string>)
         (newUser : NewUser) = 
 
         validateInput newUser

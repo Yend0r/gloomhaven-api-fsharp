@@ -38,7 +38,7 @@ module AuthenticationTests =
         { 
             Id                  = validUserId
             Email               = validEmail
-            PasswordHash        = validPwd.Hash
+            PasswordHash        = HashedPassword validPwd.Hash
             LoginAttemptNumber  = 0
             DateCreated         = DateTime.Now
             DateUpdated         = DateTime.Now

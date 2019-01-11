@@ -12,19 +12,23 @@ module PasswordUtils =
     // https://github.com/aspnet/Identity/blob/rel/2.0.0/src/Microsoft.Extensions.Identity.Core/PasswordHasher.cs
     type UserForHasher = { Email : string }
 
-    let hashPassword email password = 
+    let hashPassword email (password : PlainPassword) = 
         let userForHasher = { Email = email }
         let hasher = PasswordHasher()
+        let (PlainPassword plainPwd) = password
         try
-            hasher.HashPassword(userForHasher, password) 
+            hasher.HashPassword(userForHasher, plainPwd) 
+            |> HashedPassword
             |> Ok
         with _err -> Error "Error hashing password"
 
-    let verifyPassword email hashedPassword plainPassword = 
+    let verifyPassword email (hashedPassword : HashedPassword) (plainPassword : PlainPassword) = 
         let hasher = PasswordHasher()
         let userForHasher = { Email = email }
+        let (PlainPassword plainPwd) = plainPassword
+        let (HashedPassword hashedPwd) = hashedPassword
         try
-            let result = hasher.VerifyHashedPassword(userForHasher, hashedPassword, plainPassword)
+            let result = hasher.VerifyHashedPassword(userForHasher, hashedPwd, plainPwd)
             match result with 
             | PasswordVerificationResult.Success -> 
                 true
@@ -35,5 +39,7 @@ module PasswordUtils =
 
     //Fake password check (to hamper time based attacks). 
     let hashFakePassword() = 
-        let fakePwd = Guid.NewGuid().ToString() |> Encoding.UTF8.GetBytes |> Convert.ToBase64String
-        verifyPassword String.Empty fakePwd String.Empty |> ignore
+        let fakeHashedPwd =
+            Guid.NewGuid().ToString() |> Encoding.UTF8.GetBytes |> Convert.ToBase64String |> HashedPassword
+        let fakePlainPwd = "fake" |> PlainPassword
+        verifyPassword "fake.email" fakeHashedPwd fakePlainPwd |> ignore

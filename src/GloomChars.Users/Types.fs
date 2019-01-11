@@ -3,6 +3,10 @@
 open System
 
 type AccessToken = AccessToken of string
+type PlainPassword = PlainPassword of string
+type HashedPassword = HashedPassword of string
+type NewPassword = NewPassword of string
+type OldPassword = OldPassword of string
 
 type AuthenticationConfig = 
     {
@@ -15,7 +19,7 @@ type AuthenticationConfig =
 type NewUser = 
     {
         Email    : string
-        Password : string
+        Password : PlainPassword
     }
 
 type LockedOutStatus = 
@@ -50,7 +54,7 @@ type PreAuthUser =
     { 
         Id                  : int
         Email               : string
-        PasswordHash        : string
+        PasswordHash        : HashedPassword
         LoginAttemptNumber  : int
         DateCreated         : DateTime
         DateUpdated         : DateTime
@@ -117,14 +121,14 @@ type LoginStatusUpdate =
 type PasswordUpdate = 
     {
         AccessToken : AccessToken
-        OldPassword : string
-        NewPassword : string
+        OldPassword : OldPassword
+        NewPassword : NewPassword
     }
 
-type NewPassword = 
+type NewPasswordInfo = 
     {
         UserId       : int
-        PasswordHash : string
+        PasswordHash : HashedPassword
     }
 
 // Using an interface here ends up nicer... practicality is good

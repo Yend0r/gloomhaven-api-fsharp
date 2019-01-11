@@ -123,7 +123,7 @@ module AuthenticationRepository =
         { 
             Id = dbUser.Id
             Email = dbUser.Email
-            PasswordHash = dbUser.PasswordHash
+            PasswordHash = (HashedPassword dbUser.PasswordHash)
             LoginAttemptNumber = dbUser.LoginAttemptNumber
             DateCreated = dbUser.DateCreated
             DateUpdated = dbUser.DateUpdated
@@ -178,6 +178,6 @@ module AuthenticationRepository =
         |> dbContext.Execute
         |> ignore
 
-    let updatePassword (dbContext : IDbContext) (newPassword : NewPassword)  = 
+    let updatePassword (dbContext : IDbContext) (newPassword : NewPasswordInfo)  = 
         AuthenticationSql.updatePassword newPassword.UserId newPassword.PasswordHash
         |> dbContext.Execute

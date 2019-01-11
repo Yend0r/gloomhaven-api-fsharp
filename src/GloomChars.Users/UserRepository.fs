@@ -5,6 +5,8 @@ module internal UserSql =
     open GloomChars.Common.QueryUtils
 
     let insertNewUser email passwordHash = 
+        let (HashedPassword hashedPwd) = passwordHash
+
         sql
             """
             INSERT INTO users
@@ -25,7 +27,7 @@ module internal UserSql =
             """
             [
                 p "email" email
-                p "password_hash" passwordHash
+                p "password_hash" hashedPwd
             ]
 
     let getUserByEmail email = 
@@ -83,7 +85,7 @@ module UserRepository =
     let insertNewUser 
         (dbContext : IDbContext)
         (email : string) 
-        (hashedPassword : string) = 
+        (hashedPassword : HashedPassword) = 
         
         UserSql.insertNewUser email hashedPassword
         |> dbContext.TryExecuteScalar
