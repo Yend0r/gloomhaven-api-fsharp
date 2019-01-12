@@ -10,26 +10,31 @@ module internal AuthenticationSql =
 
     let private getUserSql = 
         """
-        SELECT id as Id,
-            email as Email, 
-            password_hash as PasswordHash, 
-            is_locked_out as IsLockedOut, 
-            login_attempt_number as LoginAttemptNumber, 
-            date_created as DateCreated, 
-            date_updated as DateUpdated,
-            date_locked_out as DateLockedOut
+        SELECT users.id                as Id,
+            users.email                as Email, 
+            users.password_hash        as PasswordHash, 
+            users.is_locked_out        as IsLockedOut, 
+            users.login_attempt_number as LoginAttemptNumber, 
+            users.date_created         as DateCreated, 
+            users.date_updated         as DateUpdated,
+            users.date_locked_out      as DateLockedOut
         FROM users
         """
 
     let getUserByEmail email = 
         sql
-            (getUserSql + "WHERE email = @email")
+            (getUserSql + "WHERE users.email = @email")
             [ p "email" email ]
 
-    let getUserByAccessToken accessToken = 
+    let getUserByAccessToken (accessToken : AccessToken) = 
         let (AccessToken token) = accessToken
         sql
-            (getUserSql + "WHERE access_token = @access_token")
+            (getUserSql + 
+                """
+                INNER JOIN auth_tokens 
+                    ON users.id = auth_tokens.user_id
+                WHERE auth_tokens.access_token = @access_token
+                """)
             [ p "access_token" token ]
 
     let insertNewLogin (newLogin : NewLogin) = 
@@ -104,6 +109,8 @@ module internal AuthenticationSql =
             ]
 
     let updatePassword userId passwordHash = 
+        let (HashedPassword pwdHash) = passwordHash
+
         sql
             """
             UPDATE users
@@ -113,7 +120,7 @@ module internal AuthenticationSql =
             """
             [
                 p "id" userId
-                p "password_hash" passwordHash
+                p "password_hash" pwdHash
             ]
 
 [<RequireQualifiedAccess>]

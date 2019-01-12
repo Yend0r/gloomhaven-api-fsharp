@@ -185,7 +185,7 @@ module AuthenticationService =
         let verifyOldPassword (oldPassword : OldPassword) = 
             let (OldPassword oldPwd) = passwordUpdate.OldPassword
             PasswordVerifier.verify (PlainPassword oldPwd)
-            >> Result.mapError (fun _ -> "Invalid password")
+            >> Result.mapError (fun _ -> "Invalid current password")
 
         let hashPassword plainPassword (user : PreAuthUser) = 
             PasswordUtils.hashPassword user.Email plainPassword
