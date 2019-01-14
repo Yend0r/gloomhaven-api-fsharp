@@ -155,7 +155,7 @@ Response type:
 ```
 
 Example Response:
-```json
+```c#
 {
     "data": [
         {
