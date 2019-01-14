@@ -228,7 +228,7 @@ Example Request:
 `https://[path-to-api]/game/classes/brute`
 
 Example Response:
-```json
+```c#
 {
     "className": "Brute",
     "name": "Inox Brute",
