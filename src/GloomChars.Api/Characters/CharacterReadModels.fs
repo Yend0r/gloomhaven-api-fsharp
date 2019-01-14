@@ -19,7 +19,7 @@ module CharacterReadModels =
             Experience   : int
             Gold         : int
             Achievements : int
-            Perks        : PerkViewModel list
+            ClaimedPerks : PerkViewModel list
         }
 
     type CharacterListModel =
@@ -48,7 +48,7 @@ module CharacterReadModels =
             Experience   = character.Experience
             Gold         = character.Gold
             Achievements = character.Achievements
-            Perks        = character.Perks |> map toPerkViewModel
+            ClaimedPerks = character.Perks |> map toPerkViewModel
         }
 
     let toListModel (character : CharacterListItem) : CharacterListModel = 

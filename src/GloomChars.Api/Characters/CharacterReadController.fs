@@ -13,7 +13,7 @@ module CharacterReadController =
         WebAuthentication.getLoggedInUserId ctx
         |> map CharactersSvc.getCharacters 
         |> map (List.map toListModel)
-        |> toSuccessList 
+        |> either toSuccessList (toError "") 
 
     let getCharacter (ctx : HttpContext) (id : int) : HttpHandler = 
         WebAuthentication.getLoggedInUserId ctx

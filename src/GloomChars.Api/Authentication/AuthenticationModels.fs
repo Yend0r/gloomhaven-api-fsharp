@@ -32,7 +32,7 @@ module AuthenticationModels =
 
         {
             Email                = user.Email
-            AccessToken          = token
+            AccessToken          = "Bearer " + token
             AccessTokenExpiresAt = user.AccessTokenExpiresAt
         }
 
