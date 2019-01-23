@@ -34,6 +34,7 @@ module AuthenticationTests =
     let validToken = "valid_token"
     let invalidToken = "invalid_token_error"
     let validEmail = "test@example.com"
+    let validName = "testname"
     let validPreAuthUser =  
         { 
             Id                  = validUserId
@@ -49,6 +50,7 @@ module AuthenticationTests =
         {
             Id                   = validUserId
             Email                = validEmail
+            Name                 = validName
             AccessToken          = AccessToken validToken
             AccessTokenExpiresAt = DateTime.UtcNow.AddDays(5.0)
             IsSystemAdmin        = false

@@ -4,13 +4,25 @@
 module internal UserSql = 
     open GloomChars.Common.QueryUtils
 
-    let insertNewUser email passwordHash = 
-        let (HashedPassword hashedPwd) = passwordHash
+    let private getUserSql = 
+        """
+        SELECT id           as Id,
+            email           as Email, 
+            name            as Name,
+            is_locked_out   as IsLockedOut,  
+            date_created    as DateCreated, 
+            date_locked_out as DateLockedOut
+        FROM users
+        """
+
+    let insertNewUser (newUser : ValidatedNewUser) = 
+        let (HashedPassword hashedPwd) = newUser.PasswordHash
 
         sql
             """
             INSERT INTO users
                 (email, 
+                name,
                 password_hash, 
                 is_locked_out, 
                 login_attempt_number, 
@@ -18,6 +30,7 @@ module internal UserSql =
                 date_updated)
             VALUES 
                 (@email, 
+                @name,
                 @password_hash, 
                 false, 
                 0, 
@@ -26,47 +39,24 @@ module internal UserSql =
             RETURNING id
             """
             [
-                p "email" email
+                p "email" newUser.Email
+                p "name" newUser.Name
                 p "password_hash" hashedPwd
             ]
 
     let getUserByEmail email = 
-        sql
-            """
-            SELECT id as Id,
-                email as Email, 
-                is_locked_out as IsLockedOut,  
-                date_created as DateCreated, 
-                date_locked_out as DateLockedOut
-            FROM users
-            WHERE email = @email
-            """
+        sql 
+            (getUserSql + " WHERE email = @email")
             [ p "email" email ]
 
     let getUser id = 
-        sql
-            """
-            SELECT id as Id,
-                email as Email, 
-                is_locked_out as IsLockedOut,  
-                date_created as DateCreated, 
-                date_locked_out as DateLockedOut
-            FROM users
-            WHERE id = @id
-            """
+        sql 
+            (getUserSql + " WHERE id = @id")
             [ p "id" id ]
 
     let getUserList = 
         sql
-            """
-            SELECT id as Id,
-                email as Email, 
-                is_locked_out as IsLockedOut,  
-                date_created as DateCreated, 
-                date_locked_out as DateLockedOut
-            FROM users
-            ORDER BY email
-            """
+            (getUserSql + " ORDER BY email")
             [ ]
 
 [<RequireQualifiedAccess>]
@@ -78,16 +68,16 @@ module UserRepository =
         { 
             Id = dbUser.Id
             Email = dbUser.Email
+            Name = dbUser.Name
             DateCreated = dbUser.DateCreated
             LockedOutStatus = LockedOutStatus.FromDb(dbUser.IsLockedOut, dbUser.DateLockedOut)
         }
 
     let insertNewUser 
         (dbContext : IDbContext)
-        (email : string) 
-        (hashedPassword : HashedPassword) = 
-        
-        UserSql.insertNewUser email hashedPassword
+        (newUser : ValidatedNewUser) = 
+
+        UserSql.insertNewUser newUser
         |> dbContext.TryExecuteScalar
         |> function
         | Success id -> 

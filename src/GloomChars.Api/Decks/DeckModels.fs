@@ -5,7 +5,7 @@ module DeckModels =
     open FSharpPlus
 
     [<CLIMutable>]
-    type NewDeckRequest = 
+    type DeckActionRequest = 
         {
             Action : string
         }

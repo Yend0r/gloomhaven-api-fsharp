@@ -23,8 +23,9 @@ module AuthenticationModels =
     type LoginResponse =
         {
             Email                : string
+            Name                 : string
             AccessToken          : string
-            AccessTokenExpiresAt : DateTime
+            AccessTokenExpiresAt : string
         }
 
     let toLoginResponse (user : AuthenticatedUser) : LoginResponse = 
@@ -32,8 +33,9 @@ module AuthenticationModels =
 
         {
             Email                = user.Email
+            Name                 = user.Name
             AccessToken          = "Bearer " + token
-            AccessTokenExpiresAt = user.AccessTokenExpiresAt
+            AccessTokenExpiresAt = user.AccessTokenExpiresAt.ToString("s", System.Globalization.CultureInfo.InvariantCulture)
         }
 
     let toPasswordUpdate (changePasswordRequest : ChangePasswordRequest) accessToken : PasswordUpdate = 

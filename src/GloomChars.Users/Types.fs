@@ -19,7 +19,15 @@ type AuthenticationConfig =
 type NewUser = 
     {
         Email    : string
+        Name     : string
         Password : PlainPassword
+    }
+
+type ValidatedNewUser = 
+    {
+        Email        : string
+        Name         : string
+        PasswordHash : HashedPassword
     }
 
 type LockedOutStatus = 
@@ -72,6 +80,7 @@ type DbAuthenticatedUser =
     {
         Id                   : int
         Email                : string
+        Name                 : string
         AccessToken          : string 
         AccessTokenExpiresAt : DateTime
         IsSystemAdmin        : bool
@@ -81,6 +90,7 @@ type AuthenticatedUser =
     {
         Id                   : int
         Email                : string
+        Name                 : string
         AccessToken          : AccessToken 
         AccessTokenExpiresAt : DateTime
         IsSystemAdmin        : bool
@@ -90,6 +100,7 @@ type DbUser =
     { 
         Id                  : int
         Email               : string
+        Name                : string
         IsLockedOut         : bool
         DateCreated         : DateTime
         DateLockedOut       : DateTime option
@@ -99,6 +110,7 @@ type User =
     { 
         Id                  : int
         Email               : string
+        Name                : string
         DateCreated         : DateTime
         LockedOutStatus     : LockedOutStatus
     }

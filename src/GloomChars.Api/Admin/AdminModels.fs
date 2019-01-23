@@ -10,6 +10,7 @@ module AdminModels =
     type AddUserRequest =
         {
             Email    : string
+            Name     : string
             Password : string
         }
 
@@ -17,6 +18,7 @@ module AdminModels =
         {
             Id            : int
             Email         : string 
+            Name          : string
             DateCreated   : DateTime
             IsLockedOut   : bool
         }
@@ -25,6 +27,7 @@ module AdminModels =
         {
             Id           = user.Id
             Email        = user.Email
+            Name         = user.Name
             DateCreated  = user.DateCreated
             IsLockedOut  = match user.LockedOutStatus with | LockedOut _ -> true | _ -> false 
         }
@@ -32,12 +35,14 @@ module AdminModels =
     let toNewUser (user : AddUserRequest) : NewUser = 
         { 
             Email = user.Email
+            Name = user.Name
             Password = PlainPassword user.Password 
         }
 
     let validateNewUser (user : AddUserRequest) = 
         validateRequiredString (user.Email, "email") []
         |> validateRequiredString (user.Password, "password") 
+        |> validateRequiredString (user.Name, "name") 
         |> validateEmail user.Email 
         |> validatePassword user.Password
         |> toValidationResult user

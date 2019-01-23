@@ -1,4 +1,4 @@
-### Architecture
+## Architecture
 
 The architecture is a typical layered app that attempts to separate concerns via layering as well as by code modularity. 
 

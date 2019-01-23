@@ -25,17 +25,22 @@ let errorHandler (ex : Exception) (logger : ILogger) =
 // ---------------------------------
 
 let configureCors (builder : CorsPolicyBuilder) =
-    builder.WithOrigins("http://127.0.0.1:8080")
+    let allowedSites = [|"http://127.0.0.1:8080"; "http://127.0.0.1:8000"|];
+    builder.WithOrigins(allowedSites)
            .AllowAnyMethod()
            .AllowAnyHeader()
+           .AllowCredentials()
            |> ignore
-           
+
 let configureApp (app : IApplicationBuilder) =
     let env = app.ApplicationServices.GetService<IHostingEnvironment>()
-    (match env.IsDevelopment() with
-    | true  -> app.UseDeveloperExceptionPage()
-    | false -> app.UseGiraffeErrorHandler errorHandler)
-        .UseAuthentication()
+    match env.IsDevelopment() with
+    | true  -> 
+        app.UseDeveloperExceptionPage() |> ignore
+    | false -> 
+        app.UseGiraffeErrorHandler errorHandler |> ignore
+
+    app.UseAuthentication()
         .UseHttpsRedirection()
         .UseCors(configureCors)
         .UseStaticFiles()

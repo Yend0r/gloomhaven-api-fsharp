@@ -22,15 +22,23 @@ module UserService =
     let private hashPassword (newUser : NewUser) = 
         PasswordUtils.hashPassword newUser.Email newUser.Password
 
+    let private toValidatedNewUser email name (passwordHash : HashedPassword) = 
+        {
+            Email = email
+            Name = name
+            PasswordHash = passwordHash
+        }
+
     let addUser 
         (dbGetUser : string -> User option)
-        (dbInsertNewUser : string -> HashedPassword -> Result<int, string>)
+        (dbInsertNewUser : ValidatedNewUser -> Result<int, string>)
         (newUser : NewUser) = 
 
         validateInput newUser
         >>= checkIfEmailExists dbGetUser
         >>= hashPassword 
-        >>= dbInsertNewUser newUser.Email
+        |> map (toValidatedNewUser newUser.Email newUser.Name)
+        >>= dbInsertNewUser 
 
     let getUsers (dbGetUsers : unit -> User list) () : User list = 
         dbGetUsers()

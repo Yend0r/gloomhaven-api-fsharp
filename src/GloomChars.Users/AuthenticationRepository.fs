@@ -82,11 +82,12 @@ module internal AuthenticationSql =
     let getAuthenticatedUser accessToken = 
         sql
             """
-            SELECT users.id as Id,
-                users.email as Email, 
-                tokens.access_token as AccessToken, 
-                tokens.date_expires as AccessTokenExpiresAt,
-                users.is_system_admin AS IsSystemAdmin
+            SELECT users.id           as Id,
+                users.email           as Email, 
+                users.name            as Name, 
+                tokens.access_token   as AccessToken, 
+                tokens.date_expires   as AccessTokenExpiresAt,
+                users.is_system_admin as IsSystemAdmin
             FROM users INNER JOIN auth_tokens AS tokens     
                 ON users.id = tokens.user_id
             WHERE tokens.access_token = @access_token
@@ -141,6 +142,7 @@ module AuthenticationRepository =
         { 
             Id = dbUser.Id
             Email = dbUser.Email
+            Name = dbUser.Name
             AccessToken = AccessToken dbUser.AccessToken
             AccessTokenExpiresAt = dbUser.AccessTokenExpiresAt
             IsSystemAdmin = dbUser.IsSystemAdmin

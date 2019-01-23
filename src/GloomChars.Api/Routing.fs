@@ -36,7 +36,7 @@ module CharactersRoutes =
                 choose [
                     postCif "/characters/%i" updateCharacter 
                     postCi "/characters" addCharacter
-                    postCif "/characters/%i/decks" newDeck 
+                    postCif "/characters/%i/decks" deckAction 
                 ]
             PATCH >=> requiresAuthenticatedUser >=> patchCif "/characters/%i" patchCharacter 
             DELETE >=> requiresAuthenticatedUser >=> deleteCif "/characters/%i" deleteCharacter 
@@ -77,16 +77,20 @@ module Routing =
 
     let router : HttpHandler =
         choose [
-            //Public access
-            routeStartsWithCi "/authentication" >=> AuthenticationRoutes.router
+            subRouteCi "/api/v1" (
+                choose [
+                    //Public access
+                    routeStartsWithCi "/authentication" >=> AuthenticationRoutes.router
 
-            //Must be logged in
-            routeStartsWithCi "/game" >=> requiresAuthenticatedUser >=> GameDataRoutes.router 
-            routeStartsWithCi "/characters" >=> requiresAuthenticatedUser >=> CharactersRoutes.router 
+                    //Must be logged in
+                    routeStartsWithCi "/game" >=> requiresAuthenticatedUser >=> GameDataRoutes.router 
+                    routeStartsWithCi "/characters" >=> requiresAuthenticatedUser >=> CharactersRoutes.router 
 
-            // System admin methods... requires a user with 'SystemAdmin' role
-            routeStartsWithCi "/admin" >=> requiresSystemAdmin >=> AdminRoutes.router 
-                
+                    // System admin methods... requires a user with 'SystemAdmin' role
+                    routeStartsWithCi "/admin" >=> requiresSystemAdmin >=> AdminRoutes.router 
+                ]
+            )
+
             GET >=>
                 choose [
                     route "/" >=> DefaultController.indexHandler()
