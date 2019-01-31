@@ -17,6 +17,9 @@ module CharacterReadModels =
             Name         : string
             ClassName    : string
             Experience   : int
+            Level        : int
+            HP           : int
+            PetHP        : int option
             Gold         : int
             Achievements : int
             ClaimedPerks : PerkViewModel list
@@ -46,6 +49,9 @@ module CharacterReadModels =
             Name         = character.Name
             ClassName    = character.ClassName.ToString()
             Experience   = character.Experience
+            Level        = character.Level
+            HP           = character.HP
+            PetHP        = character.PetHP
             Gold         = character.Gold
             Achievements = character.Achievements
             ClaimedPerks = character.Perks |> map toPerkViewModel

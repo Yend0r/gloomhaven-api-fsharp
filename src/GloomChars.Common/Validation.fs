@@ -65,6 +65,11 @@ module Validation =
         then makeValidationError propName (sprintf "%s must be a positive integer." propName) :: validationErrors
         else validationErrors
 
+    let validateIntRange (intVal : int, propName : string, max, min) validationErrors : ValidationError list =
+        if intVal < min || intVal > max
+        then makeValidationError propName (sprintf "%s must be in range %i to %i." propName min max) :: validationErrors
+        else validationErrors
+
     let validateRequiredString (str : string, propName : string) validationErrors : ValidationError list =
         match String.IsNullOrWhiteSpace(str) with
         | true -> makeValidationError propName (sprintf "%s is required." propName) :: validationErrors

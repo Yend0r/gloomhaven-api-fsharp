@@ -78,7 +78,7 @@ Example Response:
 {
     "email": "example.user@example.com",
     "accessToken": "Bearer 9a44b657-d953-45de-9685-de1df239094e",
-    "accessTokenExpiresAt": "2020-01-02T00:00:00+11:00"
+    "accessTokenExpiresAt": "2020-01-02T00:00:00"
 }
 ```
 
@@ -139,11 +139,14 @@ Response type:
 
 // GloomClass 
 {    
-    className  : string // Unique name/id of the class    
-    name       : string // Display name    
-    symbol     : string // Icon    
-    isStarting : bool   // True if the class is available when starting a game    
-    perks      : Perk[] // Array of available perks for this class
+    className   : string // Unique name/id of the class    
+    name        : string // Display name    
+    symbol      : string // Icon    
+    isStarting  : bool   // True if the class is available when starting a game    
+    perks       : Perk[] // Array of available perks for this class
+    xpLevels    : int[]  // Array of xp required to reach next level
+    hpLevels    : int[]  // Array of health pool levels per xp level
+    petHPLevels : int[]  // Nullable. Pet health pool levels (only for Beast Tyrant)
 }
 
 // Perk 
@@ -170,7 +173,9 @@ Example Response:
                     "actions": "Remove two -1 cards"
                 },
                 ...//more perks
-            ]
+            ],
+            "xpLevels": [0,45,95,150,210,275,345,420,500],
+            "hpLevels": [10,12,14,16,18,20,22,24,26]
         },
         {
             "className": "Tinkerer",
@@ -184,7 +189,9 @@ Example Response:
                     "actions": "Remove two -1 cards"
                 },
                 ...//more perks
-            ]
+            ],
+            "xpLevels": [0,45,95,150,210,275,345,420,500],
+            "hpLevels": [8,9,11,12,14,15,17,18,20]
         }
         ...//more classes
     ]
@@ -213,6 +220,9 @@ Response type:
     symbol     : string // Icon    
     isStarting : bool   // True if the class is available when starting a game    
     perks      : Perk[] // Array of available perks for this class
+    xpLevels    : int[] // Array of xp required to reach next level
+    hpLevels    : int[] // Array of health pool levels per xp level
+    petHPLevels : int[] // Pet health pool levels (only for Beast Tyrant)
 }
 
 // Perk 
@@ -241,7 +251,9 @@ Example Response:
             "actions": "Remove two -1 cards"
         },
         ...//more perks
-    ]
+    ],
+    "xpLevels": [0,45,95,150,210,275,345,420,500],
+    "hpLevels": [10,12,14,16,18,20,22,24,26]
 }
 ```
 
@@ -267,7 +279,7 @@ Response type:
     id         : int    // Unique id of the character
     name       : string // Unique name in case you have two of the same classes    
     className  : string // Unique name/id of the class    
-    experience : int    // Amount of experience the character has    
+    experience : int    // Amount of experience the character has  
     gold       : int    // Amount of gold the character has   
 }
 ```
@@ -314,7 +326,10 @@ Response type:
     id           : int    // Unique id of the character
     name         : string // Unique name in case you have two of the same classes    
     className    : string // Unique name/id of the class    
-    experience   : int    // Amount of experience the character has    
+    experience   : int    // Amount of experience the character has   
+    level        : int    // Current level (based on experience)
+    hp           : int    // Current HP (based on level) 
+    petHP        : int    // Nullable. Current pet HP (only for Beast Tyrant)
     gold         : int    // Amount of gold the character has   
     achievements : int    // Amount of gold the character has  
     claimedPerks : Perk[] // Array of claimed perks 
@@ -339,6 +354,8 @@ Example Response:
     "name": "My Cragheart",
     "className": "Cragheart",
     "experience": 55,
+    "level": 2,
+    "hp": 12,
     "gold": 47,
     "achievements": 25,
     "perks": [

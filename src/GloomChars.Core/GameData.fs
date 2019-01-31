@@ -15,6 +15,24 @@ module GameData =
     // store the toons, so db wouldn't work there and it wouldn't be 
     // possible to transfer toon between apps. So hard-coded data works best.
 
+    let xpLevels = [0; 45; 95; 150; 210; 275; 345; 420; 500]
+
+    let getCharacterLevel xp = 
+        xpLevels
+        |> List.choose (fun elem -> if xp >= elem then Some(elem) else None) 
+        |> List.length 
+
+    let getHP gloomClass xp = 
+        let level = getCharacterLevel xp
+        gloomClass.HPLevels.[level-1]
+
+    let getPetHP gloomClass xp = 
+        let level = getCharacterLevel xp
+
+        match gloomClass.PetHPLevels with
+        | Some levels -> Some (levels.[level-1])
+        | None -> None
+            
     let modCard action dmg (drawAction : DrawAction) reshuffle = 
         { 
             DrawAnother = drawAction=Draw
@@ -48,14 +66,28 @@ module GameData =
             Actions = actions
         }
 
-    let private makeClass className name symbol isStarting perks = 
+    let private makeClass className name symbol isStarting perks hpLevels = 
         { 
             ClassName = className
             Name = name
             Symbol = symbol
             IsStarting = isStarting
             Perks = perks
+            HPLevels = hpLevels
+            PetHPLevels = None
         }
+
+    let private makePetClass className name symbol isStarting perks hpLevels petHpLevels = 
+        { 
+            ClassName = className
+            Name = name
+            Symbol = symbol
+            IsStarting = isStarting
+            Perks = perks
+            HPLevels = hpLevels
+            PetHPLevels = Some petHpLevels
+        }
+
 
     // This will get cached after the first call 
     let gloomClasses : GloomClass list = 
@@ -74,6 +106,7 @@ module GameData =
                     makePerk "brt10" 1 [add 1 (Shield 1) 1 NoDraw]                        
                     makePerk "brt11" 1 [IgnoreItemEffects; add 1 Damage 1 NoDraw]         
                 ]
+                [10; 12; 14; 16; 18; 20; 22; 24; 26]
 
             makeClass Tinkerer "Quatryl Tinkerer" "Cog" true
                 [
@@ -89,6 +122,7 @@ module GameData =
                     makePerk "tnk10" 1 [add 1 AddTarget 0 NoDraw]                         
                     makePerk "tnk11" 1 [IgnoreScenarioEffects]                            
                 ]
+                [8; 9; 11; 12; 14; 15; 17; 18; 20]
 
             makeClass Spellweaver "Orchid Spellweaver" "Spell" true
                 [
@@ -104,6 +138,7 @@ module GameData =
                     makePerk "spl10" 1 [add 1 Earth 0 Draw; add 1 Air 0 Draw]              
                     makePerk "spl11" 1 [add 1 Light 0 Draw; add 1 Dark 0 Draw]             
                 ]
+                [6; 7; 8; 9; 10; 11; 12; 13; 14]
 
             makeClass Scoundrel "Human Scoundrel" "ThrowingKnives" true
                 [
@@ -119,6 +154,7 @@ module GameData =
                     makePerk "scn10" 1 [add 1 Invisible 0 Draw]                           
                     makePerk "scn11" 1 [IgnoreScenarioEffects]                            
                 ]
+                [8; 9; 11; 12; 14; 15; 17; 18; 20]
 
             makeClass Cragheart "Savvas Cragheart" "Rocks" true
                 [
@@ -133,6 +169,7 @@ module GameData =
                     makePerk "crg09" 1 [IgnoreItemEffects]                                 
                     makePerk "crg10" 1 [IgnoreScenarioEffects]                             
                 ]
+                [10; 12; 14; 16; 18; 20; 22; 24; 26]
 
             makeClass Mindthief "Vermling Mindthief" "Brain" true
                 [
@@ -149,6 +186,7 @@ module GameData =
                     makePerk "mnd11" 1 [add 1 Disarm 0 Draw; add 1 Muddle 0 Draw]          
                     makePerk "mnd12" 1 [IgnoreScenarioEffects]                             
                 ]
+                [6; 7; 8; 9; 10; 11; 12; 13; 14]
 
             makeClass Sunkeeper "Valrath Sunkeeper" "Sun" false
                 [
@@ -164,6 +202,7 @@ module GameData =
                     makePerk "sun10" 1 [IgnoreItemEffects; add 2 Damage 1 NoDraw]          
                     makePerk "sun11" 1 [IgnoreScenarioEffects]                             
                 ]
+                [10; 12; 14; 16; 18; 20; 22; 24; 26]
 
             makeClass Quartermaster "Valrath Quartermaster" "TripleArrow" false
                 [
@@ -178,6 +217,7 @@ module GameData =
                     makePerk "qrt09" 3 [add 1 RefreshItem 0 NoDraw]                       
                     makePerk "qrt10" 1 [IgnoreItemEffects; add 2 Damage 1 NoDraw]         
                 ]
+                [10; 12; 14; 16; 18; 20; 22; 24; 26]
 
             makeClass Summoner "Aesther Summoner" "Circles" false
                 [
@@ -192,6 +232,7 @@ module GameData =
                     makePerk "sum09" 1 [add 1 Dark 0 Draw; add 1 Earth 0 Draw]             
                     makePerk "sum10" 1 [IgnoreItemEffects; add 2 Damage 1 NoDraw]          
                 ]
+                [8; 9; 11; 12; 14; 15; 17; 18; 20]
 
             makeClass Nightshroud "Aesther Nightshroud" "Eclipse" false
                 [
@@ -206,6 +247,7 @@ module GameData =
                     makePerk "ngt09" 1 [add 1 AddTarget 0 Draw]                        
                     makePerk "ngt10" 1 [IgnoreItemEffects; add 2 Damage 1 NoDraw]      
                 ]
+                [8; 9; 11; 12; 14; 15; 17; 18; 20] //TOOD: confirm these numbers
 
             makeClass Plagueherald "Harrower Plagueherald" "Cthulthu" false
                 [
@@ -220,6 +262,7 @@ module GameData =
                     makePerk "plg09" 2 [add 1 Stun 0 Draw]                                
                     makePerk "plg10" 1 [IgnoreScenarioEffects; add 1 Damage 1 NoDraw]         
                 ]
+                [6; 7; 8; 9; 10; 11; 12; 13; 14]
 
             makeClass Berserker "Inox Berserker" "Lightning" false
                 [
@@ -234,6 +277,7 @@ module GameData =
                     makePerk "brs09" 2 [add 1 Fire 2 NoDraw]                              
                     makePerk "brs10" 1 [IgnoreItemEffects]                                
                 ]
+                [10; 12; 14; 16; 18; 20; 22; 24; 26]
 
             makeClass Soothsinger "Quatryl Soothsinger" "MusicNote" false
                 [
@@ -250,6 +294,7 @@ module GameData =
                     makePerk "sth11" 1 [add 3 Damage 1 Draw]                                
                     makePerk "sth12" 1 [add 2 Curse 0 Draw]                                   
                 ]
+                [6; 7; 8; 9; 10; 11; 12; 13; 14]
 
             makeClass Doomstalker "Orchid Doomstalker" "Mask" false
                 [
@@ -264,6 +309,7 @@ module GameData =
                     makePerk "dms09" 2 [add 1 AddTarget 0 Draw]                            
                     makePerk "dms10" 1 [IgnoreScenarioEffects]                               
                 ]
+                [8; 9; 11; 12; 14; 15; 17; 18; 20]
 
             makeClass Sawbones "Human Sawbones" "Saw" false
                 [
@@ -277,6 +323,7 @@ module GameData =
                     makePerk "saw08" 1 [add 1 (Heal 3) 0 Draw]                           
                     makePerk "saw09" 1 [add 1 RefreshItem 0 NoDraw]                      
                 ]
+                [8; 9; 11; 12; 14; 15; 17; 18; 20]
 
             makeClass Elementalist "Savvas Elementalist" "Triangle" false
                 [
@@ -294,8 +341,9 @@ module GameData =
                     makePerk "elm12" 1 [add 1 Stun 0 NoDraw]              
                     makePerk "elm13" 1 [add 1 AddTarget 0 NoDraw]         
                 ]
+                [6; 7; 8; 9; 10; 11; 12; 13; 14]
 
-            makeClass BeastTyrant "Vermling Beast Tyrant" "TwoMinis" false
+            makePetClass BeastTyrant "Vermling Beast Tyrant" "TwoMinis" false
                 [
                     makePerk "bst01" 1 [remove 2 Damage -1 NoDraw]                          
                     makePerk "bst02" 3 [remove 1 Damage -1 NoDraw; add 1 Damage 1 NoDraw]   
@@ -306,7 +354,10 @@ module GameData =
                     makePerk "bst07" 1 [add 2 Earth 0 Draw]                                 
                     makePerk "bst08" 1 [IgnoreScenarioEffects]                              
                 ]
-        ]
+                [6; 7; 8; 9; 10; 11; 12; 13; 14]
+                [10; 12; 14; 16; 18; 20; 22; 24; 26]
+        ] 
+        |> List.sortBy (fun c -> c.ClassName.ToString())
 
     let gloomClass (name : GloomClassName) = 
         gloomClasses 

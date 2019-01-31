@@ -108,11 +108,13 @@ type GloomClassName =
 
 type GloomClass = 
     {
-        ClassName  : GloomClassName
-        Name       : string
-        Symbol     : string
-        IsStarting : bool
-        Perks      : Perk list
+        ClassName   : GloomClassName
+        Name        : string
+        Symbol      : string
+        IsStarting  : bool
+        Perks       : Perk list
+        HPLevels    : int list
+        PetHPLevels : int list option
     }
 
 type Character = 
@@ -122,6 +124,9 @@ type Character =
         Name         : string
         ClassName    : GloomClassName
         Experience   : int
+        Level        : int
+        HP           : int
+        PetHP        : int option
         Gold         : int
         Achievements : int
         Perks        : Perk list

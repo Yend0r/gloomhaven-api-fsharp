@@ -8,6 +8,56 @@ open GloomChars.Core
 module GloomClassTests = 
 
     [<Fact>]
+    let ``XP should have correct level`` () =
+
+        let xpList = 
+            [20; 45; 90; 95; 120; 150; 200; 210; 250; 275; 300; 345; 400; 420; 450; 500; 600]
+
+        let expected = 
+            [1; 2; 2; 3; 3; 4; 4; 5; 5; 6; 6; 7; 7; 8; 8; 9; 9; 9]
+
+        xpList
+        |> List.map (fun xp -> GameData.getCharacterLevel xp)
+        |> List.mapi(fun idx level -> level |> should equal expected.[idx])
+
+    [<Fact>]
+    let ``All classes should have 9 HP levels`` () =
+
+        let xpList = 
+            [20; 90; 120; 200; 250; 300; 400; 450; 600]
+
+        let ghClasses = GameData.gloomClasses  
+
+        ghClasses
+        |> List.map (fun ghClass -> List.length ghClass.HPLevels)
+        |> List.map (fun numLevels -> numLevels |> should equal 9)
+
+    [<Fact>]
+    let ``Brute HP should have correct value`` () =
+
+        let xpList = 
+            [20; 90; 120; 200; 250; 300; 400; 450; 600]
+
+        let ghClass = GameData.gloomClass Brute  
+
+        xpList
+        |> List.map (fun xp -> GameData.getHP ghClass xp)
+        |> List.mapi(fun idx hp -> hp |> should equal ghClass.HPLevels.[idx])
+
+    [<Fact>]
+    let ``BeastTyrant Pet HP should have correct value`` () =
+
+        let xpList = 
+            [20; 90; 120; 200; 250; 300; 400; 450; 600]
+
+        let ghClass = GameData.gloomClass BeastTyrant  
+
+        xpList
+        |> List.choose (fun xp -> GameData.getPetHP ghClass xp)
+        |> List.mapi(fun idx hp -> hp |> should equal ghClass.PetHPLevels.Value.[idx])
+
+
+    [<Fact>]
     let ``There should be 17 classes`` () =
         GameData.gloomClasses
         |> List.length
