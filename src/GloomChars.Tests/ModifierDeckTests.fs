@@ -35,10 +35,10 @@ module ModifierDeckTests =
             PetHP        = None
             Gold         = 5
             Achievements = 5
-            Perks        = []
+            ClaimedPerks = []
         }
 
-    let character perks = { testCharacter with Perks = perks }
+    let character perks = { testCharacter with ClaimedPerks = perks }
 
     let dbGetDiscards testDiscards characterId = testDiscards
 

@@ -31,6 +31,7 @@ module CharacterReadModels =
             Name         : string
             ClassName    : string
             Experience   : int
+            Level        : int
             Gold         : int
         }
 
@@ -43,18 +44,19 @@ module CharacterReadModels =
 
     let toViewModel (character : Character) : CharacterViewModel = 
         let (CharacterId cId) = character.Id 
+        let gloomClass = GameData.gloomClass character.ClassName
 
         {
             Id           = cId
             Name         = character.Name
             ClassName    = character.ClassName.ToString()
             Experience   = character.Experience
-            Level        = character.Level
-            HP           = character.HP
-            PetHP        = character.PetHP
+            Level        = GameData.getCharacterLevel character.Experience
+            HP           = GameData.getHP gloomClass character.Experience
+            PetHP        = GameData.getPetHP gloomClass character.Experience
             Gold         = character.Gold
             Achievements = character.Achievements
-            ClaimedPerks = character.Perks |> map toPerkViewModel
+            ClaimedPerks = character.ClaimedPerks |> map toPerkViewModel
         }
 
     let toListModel (character : CharacterListItem) : CharacterListModel = 
@@ -65,5 +67,6 @@ module CharacterReadModels =
             Name         = character.Name
             ClassName    = character.ClassName.ToString()
             Experience   = character.Experience
+            Level        = GameData.getCharacterLevel character.Experience
             Gold         = character.Gold
         }

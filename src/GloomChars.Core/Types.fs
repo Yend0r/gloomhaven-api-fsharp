@@ -124,12 +124,9 @@ type Character =
         Name         : string
         ClassName    : GloomClassName
         Experience   : int
-        Level        : int
-        HP           : int
-        PetHP        : int option
         Gold         : int
         Achievements : int
-        Perks        : Perk list
+        ClaimedPerks : Perk list
     }
 
 type CharacterListItem = 

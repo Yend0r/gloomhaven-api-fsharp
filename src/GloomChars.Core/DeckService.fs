@@ -88,7 +88,7 @@ module DeckService =
 
     let private getFullDeck perks = 
         startingModifierDeck |> applyPerks perks
-       
+
     let drawCard 
         (dbGetDiscards : CharacterId -> ModifierCard list) 
         (dbSaveDiscard : CharacterId -> ModifierCard -> int) 
@@ -96,7 +96,7 @@ module DeckService =
         
         let discards = dbGetDiscards character.Id
 
-        let fullDeck = getFullDeck character.Perks
+        let fullDeck = getFullDeck character.ClaimedPerks
 
         //Select random card 
         let deckWithoutDiscards = 
@@ -126,7 +126,7 @@ module DeckService =
 
         let discards = dbGetDiscards character.Id
 
-        let fullDeck = getFullDeck character.Perks
+        let fullDeck = getFullDeck character.ClaimedPerks
 
         match discards with
         | [] ->
@@ -148,7 +148,7 @@ module DeckService =
 
         dbDeleteDiscards character.Id |> ignore
 
-        let fullDeck = getFullDeck character.Perks
+        let fullDeck = getFullDeck character.ClaimedPerks
 
         {
             TotalCards = fullDeck.Length

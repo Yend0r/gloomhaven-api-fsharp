@@ -280,6 +280,7 @@ Response type:
     name       : string // Unique name in case you have two of the same classes    
     className  : string // Unique name/id of the class    
     experience : int    // Amount of experience the character has  
+    level      : int    // Current level (based on experience)
     gold       : int    // Amount of gold the character has   
 }
 ```
@@ -293,6 +294,7 @@ Example Response:
             "name": "My Brute",
             "className": "Brute",
             "experience": 11,
+            "level": 1,
             "gold": 44
         },
         {
@@ -300,6 +302,7 @@ Example Response:
             "name": "My Cragheart",
             "className": "Cragheart",
             "experience": 55,
+            "level": 2,
             "gold": 47
         }
     ]

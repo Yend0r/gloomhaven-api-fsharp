@@ -79,7 +79,7 @@ module CharacterEditModels =
         let perks = 
             match patch.Perks with
             | Some patchPerks -> patchPerks |> List.map perkRequestToUpdate
-            | None -> character.Perks |> List.map perkToUpdate
+            | None -> character.ClaimedPerks |> List.map perkToUpdate
 
         {
             Id           = character.Id

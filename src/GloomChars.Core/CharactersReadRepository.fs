@@ -103,7 +103,7 @@ module CharactersReadRepository =
         let gloomClass = GameData.gloomClass className
         let allPerks = gloomClass.Perks
 
-        let perks : Perk list = 
+        let claimedPerks : Perk list = 
             dbPerks 
             |> Array.toList 
             |> List.choose (fun p -> toPerk allPerks p) 
@@ -113,22 +113,19 @@ module CharactersReadRepository =
             UserId       = UserId dbCharacter.UserId
             Name         = dbCharacter.Name
             ClassName    = className
-            Experience   = dbCharacter.Experience
-            Level        = GameData.getCharacterLevel dbCharacter.Experience
-            HP           = GameData.getHP gloomClass dbCharacter.Experience
-            PetHP        = GameData.getPetHP gloomClass dbCharacter.Experience
+            Experience   = dbCharacter.Experience            
             Gold         = dbCharacter.Gold
             Achievements = dbCharacter.Achievements
-            Perks        = perks
+            ClaimedPerks = claimedPerks
         }
 
-    let private toCharacterListItem (dbCharater : DbCharacterListItem) : CharacterListItem = 
+    let private toCharacterListItem (dbCharacter : DbCharacterListItem) : CharacterListItem = 
         { 
-            Id = CharacterId dbCharater.Id
-            Name = dbCharater.Name
-            ClassName = getGloomClassName dbCharater.Id dbCharater.ClassName
-            Experience = dbCharater.Experience
-            Gold = dbCharater.Gold
+            Id         = CharacterId dbCharacter.Id
+            Name       = dbCharacter.Name
+            ClassName  = getGloomClassName dbCharacter.Id dbCharacter.ClassName
+            Experience = dbCharacter.Experience
+            Gold       = dbCharacter.Gold
         }
 
     let getCharacter (dbContext : IDbContext) characterId userId : Character option = 
