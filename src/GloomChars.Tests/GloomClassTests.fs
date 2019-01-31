@@ -23,9 +23,6 @@ module GloomClassTests =
     [<Fact>]
     let ``All classes should have 9 HP levels`` () =
 
-        let xpList = 
-            [20; 90; 120; 200; 250; 300; 400; 450; 600]
-
         let ghClasses = GameData.gloomClasses  
 
         ghClasses
@@ -38,10 +35,10 @@ module GloomClassTests =
         let xpList = 
             [20; 90; 120; 200; 250; 300; 400; 450; 600]
 
-        let ghClass = GameData.gloomClass Brute  
+        let brute = GameData.gloomClass Brute  
 
         xpList
-        |> List.map (fun xp -> GameData.getHP ghClass xp)
+        |> List.map (fun xp -> GameData.getHP brute xp)
         |> List.mapi(fun idx hp -> hp |> should equal ghClass.HPLevels.[idx])
 
     [<Fact>]
@@ -50,10 +47,10 @@ module GloomClassTests =
         let xpList = 
             [20; 90; 120; 200; 250; 300; 400; 450; 600]
 
-        let ghClass = GameData.gloomClass BeastTyrant  
+        let beast = GameData.gloomClass BeastTyrant  
 
         xpList
-        |> List.choose (fun xp -> GameData.getPetHP ghClass xp)
+        |> List.choose (fun xp -> GameData.getPetHP beast xp)
         |> List.mapi(fun idx hp -> hp |> should equal ghClass.PetHPLevels.Value.[idx])
 
 
