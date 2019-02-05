@@ -39,7 +39,7 @@ module GloomClassTests =
 
         xpList
         |> List.map (fun xp -> GameData.getHP brute xp)
-        |> List.mapi(fun idx hp -> hp |> should equal ghClass.HPLevels.[idx])
+        |> List.mapi(fun idx hp -> hp |> should equal brute.HPLevels.[idx])
 
     [<Fact>]
     let ``BeastTyrant Pet HP should have correct value`` () =
@@ -51,7 +51,7 @@ module GloomClassTests =
 
         xpList
         |> List.choose (fun xp -> GameData.getPetHP beast xp)
-        |> List.mapi(fun idx hp -> hp |> should equal ghClass.PetHPLevels.Value.[idx])
+        |> List.mapi(fun idx hp -> hp |> should equal beast.PetHPLevels.Value.[idx])
 
 
     [<Fact>]

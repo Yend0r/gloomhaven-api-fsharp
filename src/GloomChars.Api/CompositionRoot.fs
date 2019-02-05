@@ -78,6 +78,9 @@ module CompositionRoot =
 
         let gloomClasses = GameData.gloomClasses
 
+        let getGlClass glClassName = 
+            GameData.gloomClass glClassName 
+
         let getGloomClass className = 
             GameData.getGloomClass className 
             |> optionToAppResult

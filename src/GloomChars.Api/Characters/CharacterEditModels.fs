@@ -91,16 +91,37 @@ module CharacterEditModels =
             Perks        = perks
         }
 
+    let private validatePerk (availablePerks : Perk list) perkId perkQty (validationErrors : ValidationError list) = 
+        let perkOpt = availablePerks |> List.tryFind(fun p -> p.Id = perkId)
+        match perkOpt with
+        | None -> 
+            makeValidationError "Perks" (sprintf "Invalid perk id: %s" perkId) :: validationErrors
+        | Some(perk) -> 
+            if (perkQty > perk.Quantity) then
+                makeValidationError "Perks" (sprintf "Too many perks claimed for id: %s" perkId) :: validationErrors
+            elif (perkQty < 0) then
+                makeValidationError "Perks" (sprintf "Perk quantity must be zero of more for id: %s" perkId) :: validationErrors
+            else
+                validationErrors
+
     let validateNewCharacter (character : NewCharacterRequest) = 
         validateRequiredString (character.Name, "name") []
         |> validateRequiredString (character.ClassName, "className") 
         |> toValidationResult character
         |> Result.mapError Msg
 
-    let validateCharacterUpdate (character : CharacterUpdateRequest) = 
-        validateRequiredString (character.Name, "name") []
+    let validateCharacterUpdate (glClass : GloomClass) (character : CharacterUpdateRequest) = 
+        ([], character.Perks)
+        ||> List.fold(fun acc p -> validatePerk glClass.Perks p.Id p.Quantity acc) 
+        |> validateRequiredString (character.Name, "name")
         |> validatePositiveInt (character.Experience, "experience") 
         |> validatePositiveInt (character.Gold, "gold") 
         |> validatePositiveInt (character.Achievements, "achievements") 
+        |> toValidationResult character
+        |> Result.mapError Msg
+
+    let validatePatchPerks (glClass : GloomClass) (character : CharacterUpdate) = 
+        ([], character.Perks)
+        ||> List.fold(fun acc p -> validatePerk glClass.Perks p.Id p.Quantity acc) 
         |> toValidationResult character
         |> Result.mapError Msg

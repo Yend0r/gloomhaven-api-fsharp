@@ -50,7 +50,11 @@ module CharacterEditController =
     let updateCharacter ctx (character : CharacterUpdateRequest) (characterId : int) = 
         result {
             let! userId = WebAuthentication.getLoggedInUserId ctx
-            let! validCharacter = validateCharacterUpdate character
+
+            let! existingCharacter = CharactersSvc.getCharacter (CharacterId characterId) userId
+            let glClass = GameDataSvc.getGlClass existingCharacter.ClassName
+
+            let! validCharacter = validateCharacterUpdate glClass character
             let update = toCharacterUpdate characterId validCharacter userId
             return! CharactersSvc.updateCharacter update
         }
@@ -59,9 +63,15 @@ module CharacterEditController =
     let patchCharacter ctx (patch : CharacterPatchRequest) (characterId : int) = 
         result {
             let! userId = WebAuthentication.getLoggedInUserId ctx
-            let! character = CharactersSvc.getCharacter (CharacterId characterId) userId
-            let update = mapPatchToUpdate patch character
-            return! CharactersSvc.updateCharacter update            
+
+            let! existingCharacter = CharactersSvc.getCharacter (CharacterId characterId) userId
+            let glClass = GameDataSvc.getGlClass existingCharacter.ClassName
+
+            let update = mapPatchToUpdate patch existingCharacter
+
+            let! validUpdate = validatePatchPerks glClass update 
+
+            return! CharactersSvc.updateCharacter validUpdate            
         }
         |> either toSuccessNoContent (toError "Failed to patch character.")
 
