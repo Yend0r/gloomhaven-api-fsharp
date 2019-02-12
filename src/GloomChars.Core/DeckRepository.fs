@@ -29,7 +29,6 @@ module DeckSql =
 
     let getDiscards characterId =
         let (CharacterId charId) = characterId
-
         sql
             """
                 SELECT id          AS Id, 
@@ -76,7 +75,6 @@ module DeckSql =
 
     let deleteDiscards characterId =
         let (CharacterId charId) = characterId
-
         sql
             """
             DELETE FROM modifier_discards 
@@ -154,7 +152,6 @@ module DeckRepository =
 
     let toDbNewModifierCard characterId (card : ModifierCard) = 
         let (CharacterId charId) = characterId
-
         {
             Damage        = card.Damage
             DrawAnother   = card.DrawAnother

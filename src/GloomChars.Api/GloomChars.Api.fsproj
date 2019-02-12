@@ -12,7 +12,7 @@
     <Folder Include="Admin\" />
     <Folder Include="GameData\" />
     <Folder Include="Characters\" />
-    <Folder Include="Decks\" />
+    <Folder Include="Scenarios\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Update="FSharp.Core" Version="4.5.*" />
@@ -29,10 +29,10 @@
     <Compile Include="Authentication\AuthenticationController.fs" />
     <Compile Include="Admin\AdminModels.fs" />
     <Compile Include="Admin\AdminController.fs" />
-    <Compile Include="Decks\DeckModels.fs" />
-    <Compile Include="Decks\DeckController.fs" />
     <Compile Include="GameData\GameDataModels.fs" />
     <Compile Include="GameData\GameDataController.fs" />
+    <Compile Include="Scenarios\ScenarioModels.fs" />
+    <Compile Include="Scenarios\ScenarioController.fs" />
     <Compile Include="Characters\CharacterEditModels.fs" />
     <Compile Include="Characters\CharacterReadModels.fs" />
     <Compile Include="Characters\CharacterEditController.fs" />
@@ -46,11 +46,11 @@
     </Content>
     <None Include="appsettings.Production.json" />
     <None Include="appsettings.Development.json" />
+    <PackageReference Include="Microsoft.AspNetCore.App" />
     <ProjectReference Include="..\GloomChars.Core\GloomChars.Core.fsproj" />
     <ProjectReference Include="..\GloomChars.Common\GloomChars.Common.fsproj" />
     <PackageReference Include="FSharpPlus" Version="1.0.0" />
     <PackageReference Include="Giraffe" Version="3.4.0" />
-    <PackageReference Include="Microsoft.AspNetCore.App" />
     <ProjectReference Include="..\GloomChars.Users\GloomChars.Users.fsproj" />
   </ItemGroup>
 </Project>

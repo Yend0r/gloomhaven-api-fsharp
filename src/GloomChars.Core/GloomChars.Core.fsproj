@@ -11,7 +11,9 @@
     <Compile Include="DeckService.fs" />
     <Compile Include="PerkService.fs" />
     <Compile Include="CharactersService.fs" />
-  </ItemGroup> 
+    <Compile Include="ScenarioRepository.fs" />
+    <Compile Include="ScenarioService.fs" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\GloomChars.Common\GloomChars.Common.fsproj" />
   </ItemGroup>

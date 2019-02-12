@@ -93,7 +93,7 @@ module DeckService =
         (dbGetDiscards : CharacterId -> ModifierCard list) 
         (dbSaveDiscard : CharacterId -> ModifierCard -> int) 
         (character : Character) : ModifierDeck = 
-        
+
         let discards = dbGetDiscards character.Id
 
         let fullDeck = getFullDeck character.ClaimedPerks

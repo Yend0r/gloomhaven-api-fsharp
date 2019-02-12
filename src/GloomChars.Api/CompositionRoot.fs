@@ -9,15 +9,6 @@ module CompositionRoot =
     let private config = Config.config
     let private db = PostgresDbContext(config.Database.ConnectionString)
 
-    let private optionToAppResult opt = 
-        match opt with
-        | Some c -> Ok c
-        | None -> Error NotFound
-
-    let private toAppResult (result : Result<'a,string>) : Result<'a,AppError> = 
-        result 
-        |> Result.mapError Msg
-
     module AuthenticationSvc = 
 
         let private authConfig = config.Authentication
@@ -72,7 +63,7 @@ module CompositionRoot =
 
         let getUser userId = 
             UserService.getUser dbGetUser userId
-            |> optionToAppResult
+            |> optionToAppResultOrNotFound
 
     module GameDataSvc = 
 
@@ -83,7 +74,7 @@ module CompositionRoot =
 
         let getGloomClass className = 
             GameData.getGloomClass className 
-            |> optionToAppResult
+            |> optionToAppResultOrNotFound
 
     module CharactersSvc = 
 
@@ -95,7 +86,7 @@ module CompositionRoot =
 
         let getCharacter characterId userId = 
             CharactersService.getCharacter dbGetCharacter characterId userId
-            |> optionToAppResult
+            |> optionToAppResultOrNotFound
 
         let getCharacters = CharactersService.getCharacters dbGetCharacters
 
@@ -111,14 +102,35 @@ module CompositionRoot =
             CharactersService.deleteCharacter dbGetCharacter dbDeleteCharacter characterId userId
             |> toAppResult
 
-    module DeckSvc = 
+    module ScenarioSvc = 
 
         let private dbGetDiscards    = DeckRepository.getDiscards db
         let private dbInsertDiscard  = DeckRepository.insertDiscard db
         let private dbDeleteDiscards = DeckRepository.deleteDiscards db
 
-        let getDeck = DeckService.getDeck dbGetDiscards 
+        let private getDeck = DeckService.getDeck dbGetDiscards 
+        let private drawCard = DeckService.drawCard dbGetDiscards dbInsertDiscard
+        let private reshuffle = DeckService.reshuffle dbDeleteDiscards
 
-        let drawCard = DeckService.drawCard dbGetDiscards dbInsertDiscard
+        let private dbInsertNewScenario = ScenarioRepository.insertNewScenario db
+        let private dbCompleteScenario  = ScenarioRepository.completeActiveScenarios db
+        let private dbGetScenario = ScenarioRepository.getScenario db
+        let private dbUpdateCharacterStats = ScenarioRepository.updateCharacterStats db
+        
+        let newScenario = 
+            ScenarioService.newScenario dbInsertNewScenario reshuffle
+            >> toAppResult
 
-        let reshuffle = DeckService.reshuffle dbDeleteDiscards
+        let completeScenario = 
+            ScenarioService.completeScenario dbGetScenario dbCompleteScenario reshuffle
+            >> toAppResult
+
+        let getScenario character = 
+            ScenarioService.getScenario dbGetScenario getDeck character
+            |> optionToAppResultOrNotFound
+
+        let processStatsEvent = ScenarioService.processStatsEvent dbUpdateCharacterStats
+
+        let processDeckAction = ScenarioService.processDeckAction drawCard reshuffle
+
+

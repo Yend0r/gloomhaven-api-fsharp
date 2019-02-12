@@ -4,11 +4,16 @@ open System
 
 module ResultExpr = 
 
+    let optToResult error opt = 
+        match opt with
+        | Some x -> Ok x
+        | None -> Error error
+
     type ResultBuilder() =
 
         member __.Return(x) = Ok x     
 
-        member __.ReturnFrom(m: Result<_, _>) = m
+        member __.ReturnFrom(m : Result<_, _>) = m
 
         member __.Bind(m, f) = Result.bind f m
 
@@ -33,8 +38,10 @@ module ResultExpr =
             if not (guard()) then Ok () else
             do f() |> ignore
             __.While(guard, f)
-    
-        member __.For(sequence:seq<_>, body) =
+
+        member __.For(sequence : seq<_>, body) =
             __.Using(sequence.GetEnumerator(), fun enum -> __.While(enum.MoveNext, __.Delay(fun () -> body enum.Current)))
+
+        member __.Yield(x) = Ok x
 
     let result = new ResultBuilder()

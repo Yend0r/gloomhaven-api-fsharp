@@ -3,6 +3,7 @@
 module CharacterReadModels = 
     open GloomChars.Core
     open FSharpPlus
+    open System
 
     type PerkViewModel =
         {
@@ -13,16 +14,16 @@ module CharacterReadModels =
 
     type CharacterViewModel =
         {
-            Id           : int
-            Name         : string
-            ClassName    : string
-            Experience   : int
-            Level        : int
-            HP           : int
-            PetHP        : int option
-            Gold         : int
-            Achievements : int
-            ClaimedPerks : PerkViewModel list
+            Id             : int
+            Name           : string
+            ClassName      : string
+            Experience     : int
+            Level          : int
+            HP             : int
+            PetHP          : int option
+            Gold           : int
+            Achievements   : int
+            ClaimedPerks   : PerkViewModel list
         }
 
     type CharacterListModel =
@@ -33,6 +34,7 @@ module CharacterReadModels =
             Experience   : int
             Level        : int
             Gold         : int
+            ScenarioId   : int option
         }
 
     let toPerkViewModel (perk : Perk) : PerkViewModel = 
@@ -69,4 +71,5 @@ module CharacterReadModels =
             Experience   = character.Experience
             Level        = GameData.getCharacterLevel character.Experience
             Gold         = character.Gold
+            ScenarioId   = character.ScenarioId
         }

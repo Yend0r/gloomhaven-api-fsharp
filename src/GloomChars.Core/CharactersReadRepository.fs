@@ -18,11 +18,12 @@ type DbCharacter =
 
 type DbCharacterListItem = 
     { 
-        Id           : int
-        Name         : string
-        ClassName    : string
-        Experience   : int
-        Gold         : int
+        Id         : int
+        Name       : string
+        ClassName  : string
+        Experience : int
+        Gold       : int
+        ScenarioId : int option
     }
 
 type DbCharacterPerk = 
@@ -39,14 +40,17 @@ module internal CharactersReadSql =
 
         sql
             """
-            SELECT id        As Id,
-                name         AS Name,
-                class_name   AS ClassName,
-                experience   AS Experience,
-                gold         AS Gold
-            FROM characters
-            WHERE user_id = @user_id
-            ORDER BY name 
+            SELECT characters.id      AS Id,
+                characters.name       AS Name,
+                characters.class_name AS ClassName,
+                characters.experience AS Experience,
+                characters.gold       AS Gold,
+                scenarios.id          AS ScenarioId
+            FROM characters LEFT JOIN scenarios 
+                ON characters.id = scenarios.character_id
+                AND scenarios.is_active = true
+            WHERE characters.user_id = @user_id                
+            ORDER BY characters.name 
             """
             [ p "user_id" uId ]
 
@@ -126,6 +130,7 @@ module CharactersReadRepository =
             ClassName  = getGloomClassName dbCharacter.Id dbCharacter.ClassName
             Experience = dbCharacter.Experience
             Gold       = dbCharacter.Gold
+            ScenarioId = dbCharacter.ScenarioId
         }
 
     let getCharacter (dbContext : IDbContext) characterId userId : Character option = 

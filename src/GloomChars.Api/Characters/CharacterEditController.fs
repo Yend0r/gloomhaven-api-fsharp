@@ -16,18 +16,17 @@ module CharacterEditController =
         | Some gloomClass -> Ok gloomClass
         | None -> Error (Msg "ClassName is invalid")
 
-    let private toResourceUri (ctx : HttpContext) characterId = 
-        sprintf "%s/characters/%i" (ctx.Request.Host.ToString()) characterId
+    let private toCreatedResult (ctx : HttpContext) (character : CharacterViewModel) : CreatedResult<CharacterViewModel> = 
+        let uri = sprintf "%s/characters/%i" (ctx.Request.Host.ToString()) character.Id
 
-    let private toCreatedResult (ctx : HttpContext) (characterViewModel : CharacterViewModel) : CreatedResult = 
         {
-            Uri = toResourceUri ctx characterViewModel.Id
-            Obj = characterViewModel
+            Uri = uri
+            Item = character
         }
 
     let private getCharacterViewModel (id : int) userId  = 
         CharactersSvc.getCharacter (CharacterId id) userId
-        |> map toViewModel
+        |> map toViewModel 
 
     // Controller handlers below -----
 
@@ -37,41 +36,33 @@ module CharacterEditController =
             let! validCharacter = validateNewCharacter character
             let! gloomClassName = getGloomClassName character.ClassName
             let newCharacter = toNewCharacter validCharacter gloomClassName userId
-
             let! characterId = CharactersSvc.addCharacter newCharacter
-
             // .Net wants to return the created item with a 201, so get the item
             let! viewModel = getCharacterViewModel characterId userId 
 
-            return toCreatedResult ctx viewModel
+            return toCreatedResult ctx viewModel 
         }
         |> either toCreated (toError "Failed to add character.")
 
     let updateCharacter ctx (character : CharacterUpdateRequest) (characterId : int) = 
         result {
             let! userId = WebAuthentication.getLoggedInUserId ctx
-
             let! existingCharacter = CharactersSvc.getCharacter (CharacterId characterId) userId
             let glClass = GameDataSvc.getGlClass existingCharacter.ClassName
-
             let! validCharacter = validateCharacterUpdate glClass character
             let update = toCharacterUpdate characterId validCharacter userId
-            return! CharactersSvc.updateCharacter update
+            return! CharactersSvc.updateCharacter update   
         }
         |> either toSuccessNoContent (toError "Failed to update character.")
 
     let patchCharacter ctx (patch : CharacterPatchRequest) (characterId : int) = 
         result {
             let! userId = WebAuthentication.getLoggedInUserId ctx
-
             let! existingCharacter = CharactersSvc.getCharacter (CharacterId characterId) userId
             let glClass = GameDataSvc.getGlClass existingCharacter.ClassName
-
             let update = mapPatchToUpdate patch existingCharacter
-
             let! validUpdate = validatePatchPerks glClass update 
-
-            return! CharactersSvc.updateCharacter validUpdate            
+            return! CharactersSvc.updateCharacter validUpdate           
         }
         |> either toSuccessNoContent (toError "Failed to patch character.")
 

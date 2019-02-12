@@ -25,9 +25,9 @@ Read more about the [Architecture](Architecture.md)
 |  | [Add Character](#Add-Character) |
 |  | [Update Character](#Update-Character) |
 |  | [Patch Character](#Patch-Character) |
-| Modifier Decks | [Get Deck](#Get-Deck) |
-|  | [Draw Card](#Draw-Card) |
-|  | [Reshuffle Deck](#Reshuffle-Deck) |
+| Scenarios | [Get Scenario](#Get-Scenario) |
+|  | [New Scenario](#New-Scenario) |
+|  | [Scenario Event](#Scenario-Event) |
 
 ---
 
@@ -276,12 +276,13 @@ Response type:
 
 // Character 
 {    
-    id         : int    // Unique id of the character
-    name       : string // Unique name in case you have two of the same classes    
-    className  : string // Unique name/id of the class    
-    experience : int    // Amount of experience the character has  
-    level      : int    // Current level (based on experience)
-    gold       : int    // Amount of gold the character has   
+    id         : int        // Unique id of the character
+    name       : string     // Unique name in case you have two of the same classes    
+    className  : string     // Unique name/id of the class    
+    experience : int        // Amount of experience the character has  
+    level      : int        // Current level (based on experience)
+    gold       : int        // Amount of gold the character has   
+    scenarioId : int option // Nullable scenario id - only exists if an active scenario exists
 }
 ```
 
@@ -295,7 +296,8 @@ Example Response:
             "className": "Brute",
             "experience": 11,
             "level": 1,
-            "gold": 44
+            "gold": 44,
+            "scenarioId": 88
         },
         {
             "id": 42,
@@ -324,7 +326,6 @@ Parameters:
 
 Response type:
 ```c#
-// GloomClass 
 {    
     id           : int    // Unique id of the character
     name         : string // Unique name in case you have two of the same classes    
@@ -495,11 +496,11 @@ Example Request:
 
 ---
 
-## Get Deck
+## Get Scenario
 
-`https://[path-to-api]/characters/{characterId}/decks`
+`https://[path-to-api]/characters/{characterId}/scenarios`
 
-All characters have exactly one modifier deck.
+Characters have exactly one scenario being played at a time.
 
 Method: GET
 

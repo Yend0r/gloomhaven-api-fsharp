@@ -8,13 +8,12 @@ module AdminController =
     open FSharpPlus
     open AdminModels
 
-    let private toResourceUri (ctx : HttpContext) userId = 
-        sprintf "%s/admin/users/%i" (ctx.Request.Host.ToString()) userId
+    let private toCreatedResult (ctx : HttpContext) (user : UserViewModel) : CreatedResult<UserViewModel> = 
+        let uri = sprintf "%s/admin/users/%i" (ctx.Request.Host.ToString()) user.Id
 
-    let private toCreatedResult (ctx : HttpContext) (userViewModel : UserViewModel) : CreatedResult = 
         {
-            Uri = toResourceUri ctx userViewModel.Id
-            Obj = userViewModel
+            Uri = uri
+            Item = user
         }
 
     let private getUser (userId : int) = 

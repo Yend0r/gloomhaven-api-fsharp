@@ -30,11 +30,25 @@ module ResponseHandlers =
             Data : 'T
         }
 
-    type CreatedResult = 
+    type CreatedResult<'a> = 
         {
             Uri : string
-            Obj : obj
+            Item : 'a
         }
+
+    let optionToAppResultOrNotFound opt = 
+        match opt with
+        | Some c -> Ok c
+        | None -> Error NotFound
+
+    let optionToAppResultOrBadRequest msg opt = 
+        match opt with
+        | Some c -> Ok c
+        | None -> Error (Msg msg)
+
+    let toAppResult (result : Result<'a,string>) : Result<'a,AppError> = 
+        result 
+        |> Result.mapError Msg
 
     let toMessage msg = { Message = msg }
 
@@ -60,6 +74,10 @@ module ResponseHandlers =
         setStatusCode 500 
         >=> json (createApiError title detail)
 
+    let CREATED uri obj = 
+        setHttpHeader "Location" uri
+        >=> Successful.CREATED obj
+
     //--------
 
     let toSuccess value = json value
@@ -71,9 +89,15 @@ module ResponseHandlers =
         Successful.NO_CONTENT 
 
     //201
-    let toCreated createdResult = 
-        setHttpHeader "Location" createdResult.Uri
-        >=> Successful.CREATED createdResult.Obj
+    let toCreated createdResult : HttpHandler = 
+        setHttpHeader "Location" createdResult.Uri 
+        >=> Successful.CREATED createdResult.Item
+
+    let toCreatedX uri : obj -> HttpHandler = 
+        fun item -> 
+            setHttpHeader "Location" uri            
+            >=> Successful.CREATED item
+
 
     let toError errorMsg appError = 
         match appError with

@@ -131,11 +131,12 @@ type Character =
 
 type CharacterListItem = 
     { 
-        Id           : CharacterId
-        Name         : string
-        ClassName    : GloomClassName
-        Experience   : int
-        Gold         : int
+        Id         : CharacterId
+        Name       : string
+        ClassName  : GloomClassName
+        Experience : int
+        Gold       : int
+        ScenarioId : int option
     }
 
 type NewCharacter = 
@@ -162,3 +163,44 @@ type CharacterUpdate =
         Perks        : PerkUpdate list
     }
 
+type ScenarioStatsEvent = 
+    | Damaged of int
+    | Healed of int      
+    | ExperienceGained of int 
+    | ExperienceLost of int
+
+type ScenarioDeckAction = 
+    | DrawCard
+    | Reshuffle
+    with        
+        override this.ToString() = Utils.unionToString this
+        static member FromString s = Utils.unionFromString<ScenarioDeckAction> s 
+
+type ScenarioInfo = 
+    {
+        Id            : int
+        CharacterId   : CharacterId
+        Name          : string
+        MaxHealth     : int
+        DateStarted   : DateTime
+        DateLastEvent : DateTime  
+    }
+
+type ScenarioCharacterStats = 
+    {      
+        Health      : int 
+        Experience  : int  
+    }
+
+type ScenarioState = 
+    {
+        Info           : ScenarioInfo
+        CharacterStats : ScenarioCharacterStats
+        ModifierDeck   : ModifierDeck    
+    }
+
+type NewScenario = 
+    {
+        Character : Character
+        Name      : string        
+    }

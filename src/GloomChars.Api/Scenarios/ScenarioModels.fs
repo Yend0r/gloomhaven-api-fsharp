@@ -1,8 +1,24 @@
 ﻿namespace GloomChars.Api
 
-module DeckModels = 
+module ScenarioModels = 
     open GloomChars.Core
     open FSharpPlus
+    open System
+    open GloomChars.Common.Validation
+    open ResponseHandlers
+
+    [<CLIMutable>]
+    type NewScenarioRequest = 
+        {
+            Name : string
+        }
+
+    [<CLIMutable>]
+    type EventRequest = 
+        {
+            Event : string
+            Amount : int 
+        }
 
     [<CLIMutable>]
     type DeckActionRequest = 
@@ -24,6 +40,19 @@ module DeckModels =
             TotalCards  : int
             CurrentCard : CardViewModel option
             Discards    : CardViewModel list 
+        }
+
+    type ScenarioViewModel = 
+        {
+            Id            : int
+            CharacterId   : int
+            Name          : string
+            Health        : int 
+            MaxHealth     : int
+            Experience    : int  
+            DateStarted   : DateTime
+            DateLastEvent : DateTime
+            ModifierDeck  : DeckViewModel    
         }
 
     let private getActionAmount (cardAction : CardAction) = 
@@ -63,3 +92,23 @@ module DeckModels =
             CurrentCard   = map toCardViewModel deck.CurrentCard
             Discards      = deck.Discards |> map toCardViewModel
         }
+
+    let toScenarioViewModel (scenario : ScenarioState) : ScenarioViewModel = 
+        let (CharacterId charId) = scenario.Info.CharacterId
+
+        {
+            Id            = scenario.Info.Id
+            CharacterId   = charId
+            Name          = scenario.Info.Name
+            Health        = scenario.CharacterStats.Health
+            MaxHealth     = scenario.Info.MaxHealth
+            Experience    = scenario.CharacterStats.Experience
+            DateStarted   = scenario.Info.DateStarted
+            DateLastEvent = scenario.Info.DateLastEvent
+            ModifierDeck  = toDeckViewModel scenario.ModifierDeck
+        }
+
+    let validateNewScenario (scenario : NewScenarioRequest) = 
+        validateRequiredString (scenario.Name, "name") []
+        |> toValidationResult scenario
+        |> Result.mapError Msg

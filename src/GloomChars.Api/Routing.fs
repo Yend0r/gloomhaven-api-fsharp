@@ -22,7 +22,7 @@ module AuthenticationRoutes =
 module CharactersRoutes = 
     open CharacterReadController 
     open CharacterEditController 
-    open DeckController 
+    open ScenarioController 
 
     let router : HttpHandler =  
         choose [
@@ -30,16 +30,22 @@ module CharactersRoutes =
                 choose [
                     getCif "/characters/%i" getCharacter 
                     getCi "/characters" listCharacters 
-                    getCif "/characters/%i/decks" getDeck 
+                    getCif "/characters/%i/scenarios" getScenario 
                 ]
             POST >=>
                 choose [
                     postCif "/characters/%i" updateCharacter 
                     postCi "/characters" addCharacter
-                    postCif "/characters/%i/decks" deckAction 
+                    postCif "/characters/%i/scenarios" newScenario 
+                    postCif "/characters/%i/scenarios/events" scenarioStatsEvent 
+                    postCif "/characters/%i/scenarios/deck" scenarioDeckAction
                 ]
             PATCH >=> requiresAuthenticatedUser >=> patchCif "/characters/%i" patchCharacter 
-            DELETE >=> requiresAuthenticatedUser >=> deleteCif "/characters/%i" deleteCharacter 
+            DELETE >=> 
+                choose [
+                    requiresAuthenticatedUser >=> deleteCif "/characters/%i" deleteCharacter 
+                    requiresAuthenticatedUser >=> deleteCif "/characters/%i/scenarios" completeScenario 
+                ]
         ]
 
 module GameDataRoutes = 
