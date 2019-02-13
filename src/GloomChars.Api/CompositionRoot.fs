@@ -116,10 +116,10 @@ module CompositionRoot =
         let private dbCompleteScenario  = ScenarioRepository.completeActiveScenarios db
         let private dbGetScenario = ScenarioRepository.getScenario db
         let private dbUpdateCharacterStats = ScenarioRepository.updateCharacterStats db
-        
-        let newScenario = 
-            ScenarioService.newScenario dbInsertNewScenario reshuffleDeck
-            >> toAppResult
+
+        let newScenario character name = 
+            ScenarioService.newScenario dbInsertNewScenario reshuffleDeck character name
+            |> toAppResult
 
         let completeScenario = 
             ScenarioService.completeScenario dbGetScenario dbCompleteScenario reshuffleDeck

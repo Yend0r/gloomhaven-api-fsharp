@@ -7,15 +7,15 @@ module ScenarioService =
     let newScenario 
         (dbInsertNewScenario : CharacterId -> string -> int -> Result<int, string>) 
         (reshuffle : Character -> ModifierDeck)
-        (newScenario : NewScenario) = 
+        (character : Character)
+        name = 
 
-        let character = newScenario.Character
         let gloomClass = GameData.gloomClass character.ClassName
         let characterHp = GameData.getHP gloomClass character.Experience
 
         reshuffle character |> ignore
 
-        dbInsertNewScenario character.Id newScenario.Name characterHp
+        dbInsertNewScenario character.Id name characterHp
 
     let completeScenario 
         (dbGetScenario : CharacterId -> (ScenarioInfo * ScenarioCharacterStats) option) 

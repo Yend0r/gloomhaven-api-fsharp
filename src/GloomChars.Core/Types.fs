@@ -191,9 +191,3 @@ type ScenarioState =
         CharacterStats : ScenarioCharacterStats
         ModifierDeck   : ModifierDeck    
     }
-
-type NewScenario = 
-    {
-        Character : Character
-        Name      : string        
-    }

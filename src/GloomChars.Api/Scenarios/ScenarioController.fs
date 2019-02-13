@@ -43,10 +43,7 @@ module ScenarioController =
         result {
             let! character = getCharacter ctx characterId
             let! validScenario = validateNewScenario newScenarioRequest
-
-            let newScenario = { Character = character; Name = validScenario.Name }
-
-            let! addResult = ScenarioSvc.newScenario newScenario
+            let! addResult = ScenarioSvc.newScenario character validScenario.Name
             // .Net wants to return the created item with a 201, so get the item
             let! scenario = ScenarioSvc.getScenario character 
             let viewModel = toScenarioViewModel scenario
