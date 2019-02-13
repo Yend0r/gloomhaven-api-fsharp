@@ -37,14 +37,17 @@ module CharactersRoutes =
                     postCif "/characters/%i" updateCharacter 
                     postCi "/characters" addCharacter
                     postCif "/characters/%i/scenarios" newScenario 
-                    postCif "/characters/%i/scenarios/events" scenarioStatsEvent 
                     postCif "/characters/%i/scenarios/deck" scenarioDeckAction
                 ]
-            PATCH >=> requiresAuthenticatedUser >=> patchCif "/characters/%i" patchCharacter 
-            DELETE >=> 
+            PATCH >=> requiresAuthenticatedUser >=> 
                 choose [
-                    requiresAuthenticatedUser >=> deleteCif "/characters/%i" deleteCharacter 
-                    requiresAuthenticatedUser >=> deleteCif "/characters/%i/scenarios" completeScenario 
+                    patchCif "/characters/%i/scenarios/stats" patchScenarioStats
+                    patchCif "/characters/%i" patchCharacter 
+                ]
+            DELETE >=> requiresAuthenticatedUser >=> 
+                choose [
+                    deleteCif "/characters/%i" deleteCharacter 
+                    deleteCif "/characters/%i/scenarios" completeScenario 
                 ]
         ]
 

@@ -13,3 +13,5 @@ module Utils =
         | [|case|] -> Some(FSharpValue.MakeUnion(case, [||]) :?> 'a)
         | _ -> None
 
+    let ccc optValue defaultValue = 
+        Option.defaultValue

@@ -14,10 +14,10 @@ module ScenarioModels =
         }
 
     [<CLIMutable>]
-    type EventRequest = 
+    type StatsUpdateRequest = 
         {
-            Event : string
-            Amount : int 
+            Health     : int option
+            Experience : int option 
         }
 
     [<CLIMutable>]

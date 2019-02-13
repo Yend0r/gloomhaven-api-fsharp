@@ -163,17 +163,10 @@ type CharacterUpdate =
         Perks        : PerkUpdate list
     }
 
-type ScenarioStatsEvent = 
-    | Damaged of int
-    | Healed of int      
-    | ExperienceGained of int 
-    | ExperienceLost of int
-
 type ScenarioDeckAction = 
     | DrawCard
     | Reshuffle
     with        
-        override this.ToString() = Utils.unionToString this
         static member FromString s = Utils.unionFromString<ScenarioDeckAction> s 
 
 type ScenarioInfo = 

@@ -44,13 +44,10 @@ module ScenarioService =
                 ModifierDeck   = getDeck character
             })
 
-    let processStatsEvent 
+    let updateStats 
         (dbUpdateCharacterStats : int -> ScenarioCharacterStats -> unit)
-        (event : ScenarioStatsEvent) 
-        (character : Character)
-        (scenarioState : ScenarioState)=
-
-        let stats = scenarioState.CharacterStats
+        (scenarioState : ScenarioState) 
+        (stats : ScenarioCharacterStats) =
 
         let getValidHp hp = 
             if (hp < 0) then 0 
@@ -60,34 +57,23 @@ module ScenarioService =
             if (xp < 0) then 0 
             else xp
 
-        let updatedStats = 
-            match event with
-            | Damaged amount ->
-                { stats with Health = getValidHp (stats.Health - amount) }              
-            | Healed amount ->
-                { stats with Health = getValidHp (stats.Health + amount) } 
-            | ExperienceGained amount ->
-                { stats with Experience = getValidXp (stats.Experience + amount) } 
-            | ExperienceLost amount ->
-                { stats with Experience = getValidXp (stats.Experience - amount) } 
+        let validStats = { stats with Health = getValidHp stats.Health; Experience = getValidXp stats.Experience }
 
-        (scenarioState.Info.Id, updatedStats)
+        (scenarioState.Info.Id, validStats)
         ||> dbUpdateCharacterStats 
 
-        { scenarioState with CharacterStats = updatedStats }
+        { scenarioState with CharacterStats = validStats }
 
-    let processDeckAction 
+    let drawCard 
         (drawCard : Character -> ModifierDeck)
-        (reshuffle : Character -> ModifierDeck)
-        (action : ScenarioDeckAction)
         (character : Character)
         (scenarioState : ScenarioState) =
 
-        let updatedDeck = 
-            match action with
-            | DrawCard -> drawCard character  
-            | Reshuffle -> reshuffle character   
+        { scenarioState with ModifierDeck = drawCard character }  
 
-        { scenarioState with ModifierDeck = updatedDeck }  
+    let reshuffle 
+        (reshuffle : Character -> ModifierDeck)
+        (character : Character)
+        (scenarioState : ScenarioState) =
 
-
+        { scenarioState with ModifierDeck = reshuffle character }

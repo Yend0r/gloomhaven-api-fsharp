@@ -55,22 +55,22 @@ module ScenarioController =
         }
         |> either toCreated (toError "Failed to add scenario.")
 
-    let scenarioStatsEvent (ctx : HttpContext) (eventRequest : EventRequest) (characterId : int) : HttpHandler = 
-        result {
-            let! event = 
-                match eventRequest.Event.ToUpper() with 
-                | "DAMAGED" ->          eventRequest.Amount |> Damaged          |> Ok
-                | "HEALED" ->           eventRequest.Amount |> Healed           |> Ok
-                | "EXPERIENCEGAINED" -> eventRequest.Amount |> ExperienceGained |> Ok
-                | "EXPERIENCELOST" ->   eventRequest.Amount |> ExperienceLost   |> Ok
-                | _ -> "Invalid event." |> Msg |> Error
+    let private mergeStats (statsUpdate : StatsUpdateRequest) (stats : ScenarioCharacterStats) : ScenarioCharacterStats = 
+        { 
+            Health = Option.defaultValue stats.Health statsUpdate.Health
+            Experience = Option.defaultValue stats.Experience statsUpdate.Experience 
+        }
 
+    let patchScenarioStats (ctx : HttpContext) (statsUpdateRequest : StatsUpdateRequest) (characterId : int) : HttpHandler = 
+        result {
             let! character = getCharacter ctx characterId
             let! scenario = ScenarioSvc.getScenario character 
-            let updatedScenario = ScenarioSvc.processStatsEvent event character scenario
+
+            let statsUpdate = mergeStats statsUpdateRequest scenario.CharacterStats
+            let updatedScenario = ScenarioSvc.updateStats scenario statsUpdate
             return toScenarioViewModel updatedScenario
         }
-        |> either toSuccess (toError "Failed to process event.")
+        |> either toSuccess (toError "Failed to process stats update.")
 
     let scenarioDeckAction (ctx : HttpContext) (deckActionRequest : DeckActionRequest) (characterId : int) : HttpHandler = 
         result {
@@ -80,7 +80,10 @@ module ScenarioController =
 
             let! character = getCharacter ctx characterId
             let! scenario = ScenarioSvc.getScenario character 
-            let updatedScenario = ScenarioSvc.processDeckAction action character scenario
+            let updatedScenario = 
+                match action with
+                | DrawCard -> ScenarioSvc.drawCard character scenario
+                | Reshuffle -> ScenarioSvc.reshuffle character scenario
             return toScenarioViewModel updatedScenario
         }
         |> either toSuccess (toError "Failed to process deck action.")
@@ -88,7 +91,7 @@ module ScenarioController =
     let completeScenario ctx (characterId : int) : HttpHandler = 
         getCharacter ctx characterId
         |> map ScenarioSvc.completeScenario 
-        |> either toSuccessNoContent (toError "Delete failed.")
+        |> either toSuccessNoContent (toError "Scenario completion failed.")
         
 
     

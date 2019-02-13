@@ -109,8 +109,8 @@ module CompositionRoot =
         let private dbDeleteDiscards = DeckRepository.deleteDiscards db
 
         let private getDeck = DeckService.getDeck dbGetDiscards 
-        let private drawCard = DeckService.drawCard dbGetDiscards dbInsertDiscard
-        let private reshuffle = DeckService.reshuffle dbDeleteDiscards
+        let private drawCardFromDeck = DeckService.drawCard dbGetDiscards dbInsertDiscard
+        let private reshuffleDeck = DeckService.reshuffle dbDeleteDiscards
 
         let private dbInsertNewScenario = ScenarioRepository.insertNewScenario db
         let private dbCompleteScenario  = ScenarioRepository.completeActiveScenarios db
@@ -118,19 +118,21 @@ module CompositionRoot =
         let private dbUpdateCharacterStats = ScenarioRepository.updateCharacterStats db
         
         let newScenario = 
-            ScenarioService.newScenario dbInsertNewScenario reshuffle
+            ScenarioService.newScenario dbInsertNewScenario reshuffleDeck
             >> toAppResult
 
         let completeScenario = 
-            ScenarioService.completeScenario dbGetScenario dbCompleteScenario reshuffle
+            ScenarioService.completeScenario dbGetScenario dbCompleteScenario reshuffleDeck
             >> toAppResult
 
         let getScenario character = 
             ScenarioService.getScenario dbGetScenario getDeck character
             |> optionToAppResultOrNotFound
 
-        let processStatsEvent = ScenarioService.processStatsEvent dbUpdateCharacterStats
+        let updateStats = ScenarioService.updateStats dbUpdateCharacterStats
 
-        let processDeckAction = ScenarioService.processDeckAction drawCard reshuffle
+        let drawCard = ScenarioService.drawCard drawCardFromDeck 
+
+        let reshuffle = ScenarioService.reshuffle reshuffleDeck
 
 

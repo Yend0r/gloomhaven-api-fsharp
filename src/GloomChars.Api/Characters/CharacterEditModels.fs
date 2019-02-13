@@ -71,11 +71,6 @@ module CharacterEditModels =
         }
 
     let mapPatchToUpdate (patch : CharacterPatchRequest) (character : Character) = 
-        let getPatchProp (patchOptionVal : 'a option) (existingVal : 'a) = 
-            match patchOptionVal with
-            | Some patchVal -> patchVal
-            | None -> existingVal
-
         let perks = 
             match patch.Perks with
             | Some patchPerks -> patchPerks |> List.map perkRequestToUpdate
@@ -84,25 +79,36 @@ module CharacterEditModels =
         {
             Id           = character.Id
             UserId       = character.UserId
-            Name         = getPatchProp patch.Name character.Name
-            Experience   = getPatchProp patch.Experience character.Experience
-            Gold         = getPatchProp patch.Gold character.Gold
-            Achievements = getPatchProp patch.Achievements character.Achievements
+            Name         = Option.defaultValue character.Name patch.Name 
+            Experience   = Option.defaultValue character.Experience patch.Experience
+            Gold         = Option.defaultValue character.Gold patch.Gold
+            Achievements = Option.defaultValue character.Achievements patch.Achievements
             Perks        = perks
         }
 
     let private validatePerk (availablePerks : Perk list) perkId perkQty (validationErrors : ValidationError list) = 
-        let perkOpt = availablePerks |> List.tryFind(fun p -> p.Id = perkId)
-        match perkOpt with
-        | None -> 
-            makeValidationError "Perks" (sprintf "Invalid perk id: %s" perkId) :: validationErrors
-        | Some(perk) -> 
-            if (perkQty > perk.Quantity) then
-                makeValidationError "Perks" (sprintf "Too many perks claimed for id: %s" perkId) :: validationErrors
-            elif (perkQty < 0) then
-                makeValidationError "Perks" (sprintf "Perk quantity must be zero of more for id: %s" perkId) :: validationErrors
+
+        let checkPerkQty qty (perk : Perk) = 
+            if (qty > perk.Quantity) then
+                Some (sprintf "Too many perks claimed for id: %s" perk.Id)
+            elif (qty < 0) then
+                Some (sprintf "Perk quantity must be zero of more for id: %s" perk.Id)
             else
-                validationErrors
+                None
+
+        availablePerks 
+        |> List.tryFind(fun p -> p.Id = perkId)
+        |> function
+        | None -> 
+            Some (sprintf "Invalid perk id: %s" perkId)
+        | Some(perk) -> 
+            checkPerkQty perkQty perk 
+        |> function
+        | Some(errorMsg) -> 
+            makeValidationError "Perks" errorMsg :: validationErrors
+        | None -> 
+            validationErrors
+            
 
     let validateNewCharacter (character : NewCharacterRequest) = 
         validateRequiredString (character.Name, "name") []
