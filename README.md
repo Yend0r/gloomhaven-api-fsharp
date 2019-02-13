@@ -27,7 +27,8 @@ Read more about the [Architecture](Architecture.md)
 |  | [Patch Character](#Patch-Character) |
 | Scenarios | [Get Scenario](#Get-Scenario) |
 |  | [New Scenario](#New-Scenario) |
-|  | [Scenario Event](#Scenario-Event) |
+|  | [Scenario Stat Update](#Scenario-Stat-Update) |
+|  | [Scenario Deck Action](#Scenario-Deck-Action) |
 
 ---
 
@@ -143,7 +144,7 @@ Response type:
     name        : string // Display name    
     symbol      : string // Icon    
     isStarting  : bool   // True if the class is available when starting a game    
-    perks       : Perk[] // Array of available perks for this class
+    perks       : Perk[] // Defn below. Array of available perks for this class
     xpLevels    : int[]  // Array of xp required to reach next level
     hpLevels    : int[]  // Array of health pool levels per xp level
     petHPLevels : int[]  // Nullable. Pet health pool levels (only for Beast Tyrant)
@@ -219,7 +220,7 @@ Response type:
     name       : string // Display name    
     symbol     : string // Icon    
     isStarting : bool   // True if the class is available when starting a game    
-    perks      : Perk[] // Array of available perks for this class
+    perks      : Perk[] // Defn below. Array of available perks for this class
     xpLevels    : int[] // Array of xp required to reach next level
     hpLevels    : int[] // Array of health pool levels per xp level
     petHPLevels : int[] // Pet health pool levels (only for Beast Tyrant)
@@ -336,7 +337,7 @@ Response type:
     petHP        : int    // Nullable. Current pet HP (only for Beast Tyrant)
     gold         : int    // Amount of gold the character has   
     achievements : int    // Amount of gold the character has  
-    claimedPerks : Perk[] // Array of claimed perks 
+    claimedPerks : Perk[] // Defn below. Array of claimed perks 
 }
 
 // Perk 
@@ -441,14 +442,14 @@ Response code: `204 NoContent`
 Example Request: 
 ```json
 {
-    "Name": "Test Brute",
-    "Experience": 11,
-    "Gold": 44,
-    "Achievements": 22,
-    "Perks": [
-    	{ "Id": "brt02", "Quantity": 2 },
-    	{ "Id": "brt03", "Quantity": 1 },
-    	{ "Id": "brt04", "Quantity": 1 }
+    "name": "Test Brute",
+    "experience": 11,
+    "gold": 44,
+    "achievements": 22,
+    "perks": [
+    	{ "id": "brt02", "quantity": 2 },
+    	{ "id": "brt03", "quantity": 1 },
+    	{ "id": "brt04", "quantity": 1 }
     ]
 }
 ```
@@ -484,12 +485,12 @@ Response code: `204 NoContent`
 Example Request: 
 ```json
 {
-    "Name": "Test Brute",
-    "Experience": 11,
-    "Perks": [
-    	{ "Id": "brt02", "Quantity": 2 },
-    	{ "Id": "brt03", "Quantity": 1 },
-    	{ "Id": "brt04", "Quantity": 1 }
+    "name": "Test Brute",
+    "experience": 11,
+    "perks": [
+    	{ "id": "brt02", "quantity": 2 },
+    	{ "id": "brt03", "quantity": 1 },
+    	{ "id": "brt04", "quantity": 1 }
     ]
 }
 ```
@@ -511,11 +512,22 @@ Parameters:
 
 Response type:
 ```c#
+// Scenario
+{
+    characterId   : int    // Unique id of the character
+    name          : string // Name of the scenario
+    health        : int    // Current HP
+    maxHealth     : int    // Max HP for scenario (calculated by character level)
+    experience    : int    // XP earned
+    dateStarted   : string 
+    dateLastEvent : string
+    modifierDeck  : Deck   // Defn below. 
+}
 // Deck
 {    
     totalCards  : int    // Number of cards in the deck (changes with perks and xp)
-    currentCard : Card   // Current card... nothing if no cards have been drawn
-    discards    : Card[] // Array of discarded cards
+    currentCard : Card   // Defn below. Current card... nothing if no cards have been drawn
+    discards    : Card[] // Defn below. Array of discarded cards
 }
 
 // Card 
@@ -527,43 +539,123 @@ Response type:
     actionAmount : int option // Amount associated with the action (eg: Heal 2)
 }
 ```
+   
+
 
 Example Request: 
 
-`https://[path-to-api]/characters/42/decks`
+`https://[path-to-api]/characters/1/scenarios`
 
 Example Response:
 ```json
 {
-    "totalCards": 21,
-    "currentCard": {
-        "damage": 1,
-        "drawAnother": false,
-        "reshuffle": false,
-        "action": "Damage"
-    },
-    "discards": [
-        {
+    "characterId": 1,
+    "name": "Test Scenario F",
+    "health": 8,
+    "maxHealth": 10,
+    "experience": 4,
+    "dateStarted": "2019-02-12T18:21:39",
+    "dateLastEvent": "2019-02-13T22:45:31",
+    "modifierDeck": {
+        "totalCards": 21,
+        "currentCard": {
             "damage": 1,
             "drawAnother": false,
             "reshuffle": false,
             "action": "Damage"
         },
-        {
-            "damage": 1,
-            "drawAnother": false,
-            "reshuffle": false,
-            "action": "Damage"
-        }
-    ]
+        "discards": [
+            {
+                "damage": 1,
+                "drawAnother": false,
+                "reshuffle": false,
+                "action": "Damage"
+            },
+            {
+                "damage": 1,
+                "drawAnother": false,
+                "reshuffle": false,
+                "action": "Damage"
+            }
+        ]
+    }
 }
 ```
 
 ---
 
-## Draw Card
+## New Scenario
 
-`https://[path-to-api]/characters/{characterId}/decks`
+`https://[path-to-api]/characters/{characterId}/scenarios`
+
+Method: POST
+
+Parameters: 
+| Name  | Value | 
+| --- | --- | 
+| characterId | The id of the character |
+
+Request Type: 
+```c#
+{
+    name      : string // Scenario name
+}
+```
+
+Response code: `201 Created`
+
+Response type: Same type as returned for [Get Scenario](#Get-Scenario)
+
+Example Request: 
+```json
+{ 
+    "name": "Misty Swamp Scenario"
+}
+```
+
+---
+
+## Scenario Stat Update
+
+`https://[path-to-api]/characters/{characterId}/scenarios/stats`
+
+Method: PATCH
+
+Parameters: 
+| Name  | Value | 
+| --- | --- | 
+| characterId | The id of the character |
+
+Request Type: 
+```c#
+// Character stats patch - ALL fields are optional
+{
+    health     : int 
+    experience : int
+}
+```
+
+Response type: same as for [Get Scenario](#Get-Scenario) 
+
+Example Request - Character takes 2 damage reducing health to 8/10: 
+```json
+{
+    "health": 8
+}
+```
+
+Example Request - Character already had 2 xp, and then earns 3 more for a total of 5: 
+```json
+{
+    "experience": 5
+}
+```
+
+---
+
+## Scenario Deck Action
+
+`https://[path-to-api]/characters/{characterId}/scenarios/deck`
 
 This is probably not the most "restful" api method. It is a post because it modifies data on the server. This and reshuffle have more of an intrinsic rpc nature. So rather than being a rest purist, I made them more rpc-like.
 
@@ -572,27 +664,24 @@ Method: POST
 Request type:
 ```c#
 {    
-    action  : string // Either "Draw" or "Reshuffle"
+    action  : string // Either "DrawCard" or "Reshuffle"
 }
 ```
 
-Response type: same as for [Get Deck](#Get-Deck) 
+Response type: same as for [Get Scenario](#Get-Scenario) 
 
----
-
-## Reshuffle Deck
-
-`https://[path-to-api]/characters/{characterId}/decks`
-
-Method: POST
-
-Request type:
-```c#
-{    
-    action  : string // Either "Draw" or "Reshuffle"
+Example Request - DrawCard:
+```json
+{
+    "action": "DrawCard"
 }
 ```
 
-Response type: same as for [Get Deck](#Get-Deck) but the discards will be empty and there will be no current card.
+Example Request - Reshuffle: 
+```json
+{
+    "action": "Reshuffle"
+}
+```
 
 ---

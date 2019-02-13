@@ -44,7 +44,6 @@ module ScenarioModels =
 
     type ScenarioViewModel = 
         {
-            Id            : int
             CharacterId   : int
             Name          : string
             Health        : int 
@@ -97,7 +96,6 @@ module ScenarioModels =
         let (CharacterId charId) = scenario.Info.CharacterId
 
         {
-            Id            = scenario.Info.Id
             CharacterId   = charId
             Name          = scenario.Info.Name
             Health        = scenario.CharacterStats.Health

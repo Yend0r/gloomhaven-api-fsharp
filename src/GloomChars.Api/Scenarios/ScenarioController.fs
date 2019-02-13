@@ -15,7 +15,7 @@ module ScenarioController =
         >>= CharactersSvc.getCharacter (CharacterId characterId)
 
     let private toCreatedResult (ctx : HttpContext) (characterId : int) (scenario : ScenarioViewModel) : CreatedResult<ScenarioViewModel> = 
-        let uri = sprintf "%s/characters/%i/scenarios/%i" (ctx.Request.Host.ToString()) characterId scenario.Id
+        let uri = sprintf "%s/characters/%i/scenarios" (ctx.Request.Host.ToString()) characterId 
 
         {
             Uri = uri
