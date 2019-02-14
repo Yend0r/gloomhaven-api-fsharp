@@ -12,7 +12,7 @@ module ScenarioController =
 
     let private getCharacter ctx characterId = 
         WebAuthentication.getLoggedInUserId ctx
-        >>= CharactersSvc.getCharacter (CharacterId characterId)
+        >>= CharactersSvc.get (CharacterId characterId)
 
     let private toCreatedResult (ctx : HttpContext) (characterId : int) (scenario : ScenarioViewModel) : CreatedResult<ScenarioViewModel> = 
         let uri = sprintf "%s/characters/%i/scenarios" (ctx.Request.Host.ToString()) characterId 
@@ -52,19 +52,17 @@ module ScenarioController =
         }
         |> either toCreated (toError "Failed to add scenario.")
 
-    let private mergeStats (statsUpdate : StatsUpdateRequest) (stats : ScenarioCharacterStats) : ScenarioCharacterStats = 
+    let private toStatsUpdate (stats : StatsUpdateRequest) : StatsUpdate = 
         { 
-            Health = Option.defaultValue stats.Health statsUpdate.Health
-            Experience = Option.defaultValue stats.Experience statsUpdate.Experience 
+            Health = stats.Health 
+            Experience = stats.Experience 
         }
 
     let patchScenarioStats (ctx : HttpContext) (statsUpdateRequest : StatsUpdateRequest) (characterId : int) : HttpHandler = 
         result {
             let! character = getCharacter ctx characterId
-            let! scenario = ScenarioSvc.getScenario character 
-
-            let statsUpdate = mergeStats statsUpdateRequest scenario.CharacterStats
-            let updatedScenario = ScenarioSvc.updateStats scenario statsUpdate
+            let statsUpdate = toStatsUpdate statsUpdateRequest 
+            let! updatedScenario = ScenarioSvc.updateStats character statsUpdate
             return toScenarioViewModel updatedScenario
         }
         |> either toSuccess (toError "Failed to process stats update.")
@@ -76,11 +74,10 @@ module ScenarioController =
                 |> optionToAppResultOrBadRequest "Invalid deck action."
 
             let! character = getCharacter ctx characterId
-            let! scenario = ScenarioSvc.getScenario character 
-            let updatedScenario = 
+            let! updatedScenario = 
                 match action with
-                | DrawCard -> ScenarioSvc.drawCard character scenario
-                | Reshuffle -> ScenarioSvc.reshuffle character scenario
+                | DrawCard -> ScenarioSvc.drawCard character 
+                | Reshuffle -> ScenarioSvc.reshuffle character 
             return toScenarioViewModel updatedScenario
         }
         |> either toSuccess (toError "Failed to process deck action.")

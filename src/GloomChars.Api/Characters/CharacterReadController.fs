@@ -11,13 +11,13 @@ module CharacterReadController =
 
     let listCharacters (ctx : HttpContext) : HttpHandler = 
         WebAuthentication.getLoggedInUserId ctx
-        |> map CharactersSvc.getCharacters 
+        |> map CharactersSvc.list 
         |> map (List.map toListModel)
         |> either toSuccessList (toError "") 
 
     let getCharacter (ctx : HttpContext) (id : int) : HttpHandler = 
         WebAuthentication.getLoggedInUserId ctx
-        >>= CharactersSvc.getCharacter (CharacterId id)
+        >>= CharactersSvc.get (CharacterId id)
         |> map toViewModel
         |> either toSuccess (toError "Character not found")
 

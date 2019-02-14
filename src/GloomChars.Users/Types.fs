@@ -149,3 +149,17 @@ type IAuthenticationRepository =
     abstract member GetUserForAuth : string -> PreAuthUser option
     abstract member InsertNewLogin : NewLogin -> Result<NewLogin, string>
     abstract member UpdateLoginStatus : LoginStatusUpdate -> unit
+    abstract member RevokeToken : AccessToken -> unit
+    abstract member GetUserForAuthByToken : AccessToken -> PreAuthUser option
+    abstract member UpdatePassword : NewPasswordInfo -> int
+
+type IAuthenticationService = 
+    abstract member Authenticate : string -> PlainPassword -> Result<AuthenticatedUser, AuthFailure>
+    abstract member GetAuthenticatedUser : AccessToken -> Result<AuthenticatedUser, string>
+    abstract member RevokeToken : AccessToken -> unit
+    abstract member ChangePassword : PasswordUpdate -> Result<int, string>
+
+type IUserService = 
+    abstract member Add : NewUser -> Result<int, string>
+    abstract member Get : int -> User option
+    abstract member List : unit -> User list

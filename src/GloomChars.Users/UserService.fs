@@ -29,7 +29,7 @@ module UserService =
             PasswordHash = passwordHash
         }
 
-    let addUser 
+    let add 
         (dbGetUser : string -> User option)
         (dbInsertNewUser : ValidatedNewUser -> Result<int, string>)
         (newUser : NewUser) = 
@@ -40,9 +40,26 @@ module UserService =
         |> map (toValidatedNewUser newUser.Email newUser.Name)
         >>= dbInsertNewUser 
 
-    let getUsers (dbGetUsers : unit -> User list) () : User list = 
+    let list (dbGetUsers : unit -> User list) () : User list = 
         dbGetUsers()
 
-    let getUser (dbGetUser : int -> User option) id : User option = 
+    let get (dbGetUser : int -> User option) id : User option = 
         dbGetUser id
-  
+
+    let create db = 
+
+        let dbGetUserByEmail = UserRepository.getUserByEmail db
+        let dbGetUsers       = UserRepository.getUsers db
+        let dbGetUser        = UserRepository.getUser db
+        let dbInsertNewUser  = UserRepository.insertNewUser db
+
+        { new IUserService with 
+            member __.Get userId = 
+                get dbGetUser userId
+
+            member __.List () = 
+                list dbGetUsers ()
+
+            member __.Add newUser = 
+                add dbGetUserByEmail dbInsertNewUser newUser
+        }

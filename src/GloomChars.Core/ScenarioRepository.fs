@@ -111,7 +111,7 @@ module ScenarioRepository =
     open FSharpPlus
 
     let private toScenario (dbScenario : DbScenario) = 
-        let scenario = 
+        let scenario : ScenarioInfo = 
             {
                 Id            = dbScenario.Id
                 CharacterId   = CharacterId dbScenario.CharacterId
@@ -121,7 +121,7 @@ module ScenarioRepository =
                 DateLastEvent = dbScenario.DateLastEvent
             } 
 
-        let stats = 
+        let stats : ScenarioCharacterStats = 
             {
                 Health        = dbScenario.Health
                 Experience    = dbScenario.Experience

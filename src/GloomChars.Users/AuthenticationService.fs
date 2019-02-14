@@ -196,4 +196,26 @@ module AuthenticationService =
         >>= toNewPasswordInfo passwordUpdate.NewPassword
         |> map dbUpdatePassword 
 
-                
+    let create authConfig db = 
+
+        let authRepo = AuthenticationRepository.create db
+
+        let auth email password = 
+            authenticate authConfig authRepo email password
+
+        let getAuthUser = 
+            getAuthenticatedUser authRepo.GetAuthenticatedUser
+
+        let revoke = 
+            revokeToken authRepo.RevokeToken 
+
+        let changePwd =
+            (authRepo.GetUserForAuthByToken, authRepo.UpdatePassword)
+            ||> changePassword
+
+        { new IAuthenticationService with 
+            member __.Authenticate email password   = auth email password
+            member __.GetAuthenticatedUser token    = getAuthUser token
+            member __.RevokeToken token             = revoke token
+            member __.ChangePassword passwordUpdate = changePwd passwordUpdate }
+

@@ -59,7 +59,7 @@ module ModifierDeckTests =
 
         let getDiscards = dbGetDiscards []
 
-        let deck = DeckService.drawCard getDiscards dbSaveDiscard testCharacter
+        let deck = DeckService.draw getDiscards dbSaveDiscard testCharacter
 
         deck.TotalCards |> should equal (DeckService.startingModifierDeck |> List.length)
         deck.CurrentCard.IsSome |> should equal true
@@ -78,7 +78,7 @@ module ModifierDeckTests =
 
         let getDiscards = dbGetDiscards discards
 
-        let deck = DeckService.drawCard getDiscards dbSaveDiscard testCharacter
+        let deck = DeckService.draw getDiscards dbSaveDiscard testCharacter
 
         let expected1 = makeCard (MultiplyDamage (DamageMultiplier 2)) 0 false true
         let expected2 = makeCard Miss 0 false true

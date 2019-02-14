@@ -25,7 +25,7 @@ module CharacterEditController =
         }
 
     let private getCharacterViewModel (id : int) userId  = 
-        CharactersSvc.getCharacter (CharacterId id) userId
+        CharactersSvc.get (CharacterId id) userId
         |> map toViewModel 
 
     // Controller handlers below -----
@@ -36,7 +36,7 @@ module CharacterEditController =
             let! validCharacter = validateNewCharacter character
             let! gloomClassName = getGloomClassName character.ClassName
             let newCharacter = toNewCharacter validCharacter gloomClassName userId
-            let! characterId = CharactersSvc.addCharacter newCharacter
+            let! characterId = CharactersSvc.add newCharacter
             // .Net wants to return the created item with a 201, so get the item
             let! viewModel = getCharacterViewModel characterId userId 
 
@@ -47,27 +47,27 @@ module CharacterEditController =
     let updateCharacter ctx (character : CharacterUpdateRequest) (characterId : int) = 
         result {
             let! userId = WebAuthentication.getLoggedInUserId ctx
-            let! existingCharacter = CharactersSvc.getCharacter (CharacterId characterId) userId
+            let! existingCharacter = CharactersSvc.get (CharacterId characterId) userId
             let glClass = GameDataSvc.getGlClass existingCharacter.ClassName
             let! validCharacter = validateCharacterUpdate glClass character
             let update = toCharacterUpdate characterId validCharacter userId
-            return! CharactersSvc.updateCharacter update   
+            return! CharactersSvc.update update   
         }
         |> either toSuccessNoContent (toError "Failed to update character.")
 
     let patchCharacter ctx (patch : CharacterPatchRequest) (characterId : int) = 
         result {
             let! userId = WebAuthentication.getLoggedInUserId ctx
-            let! existingCharacter = CharactersSvc.getCharacter (CharacterId characterId) userId
+            let! existingCharacter = CharactersSvc.get (CharacterId characterId) userId
             let glClass = GameDataSvc.getGlClass existingCharacter.ClassName
             let update = mapPatchToUpdate patch existingCharacter
             let! validUpdate = validatePatchPerks glClass update 
-            return! CharactersSvc.updateCharacter validUpdate           
+            return! CharactersSvc.update validUpdate           
         }
         |> either toSuccessNoContent (toError "Failed to patch character.")
 
     let deleteCharacter ctx (characterId : int) : HttpHandler = 
         WebAuthentication.getLoggedInUserId ctx
-        |> map (CharactersSvc.deleteCharacter (CharacterId characterId))
+        |> map (CharactersSvc.delete (CharacterId characterId))
         |> either toSuccessNoContent (toError "Delete failed.")
 

@@ -17,20 +17,20 @@ module AdminController =
         }
 
     let private getUser (userId : int) = 
-        UsersSvc.getUser userId
+        UsersSvc.get userId
         |> map toUserViewModel
 
     let addUser (ctx : HttpContext) (addUserRequest : AddUserRequest) : HttpHandler = 
         addUserRequest
         |> validateNewUser 
         |> map toNewUser
-        >>= UsersSvc.addUser
+        >>= UsersSvc.add
         >>= getUser
         |> map (toCreatedResult ctx)
         |> either toCreated (toError "Failed to add user.")
         
     let listUsers (ctx : HttpContext) : HttpHandler = 
-        UsersSvc.getUsers()
+        UsersSvc.list()
         |> map toUserViewModel
         |> toSuccessList
 

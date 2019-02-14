@@ -89,7 +89,7 @@ module DeckService =
     let private getFullDeck perks = 
         startingModifierDeck |> applyPerks perks
 
-    let drawCard 
+    let draw
         (dbGetDiscards : CharacterId -> ModifierCard list) 
         (dbSaveDiscard : CharacterId -> ModifierCard -> int) 
         (character : Character) : ModifierDeck = 
@@ -154,4 +154,16 @@ module DeckService =
             TotalCards = fullDeck.Length
             CurrentCard = None
             Discards = []
+        }
+
+    let create db = 
+
+        let dbGetDiscards    = DeckRepository.getDiscards db
+        let dbInsertDiscard  = DeckRepository.insertDiscard db
+        let dbDeleteDiscards = DeckRepository.deleteDiscards db
+
+        { new IDeckService with 
+            member __.Get character = getDeck dbGetDiscards character
+            member __.Draw character = draw dbGetDiscards dbInsertDiscard character
+            member __.Reshuffle character = reshuffle dbDeleteDiscards character
         }

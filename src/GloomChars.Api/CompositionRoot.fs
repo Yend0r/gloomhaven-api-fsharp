@@ -12,57 +12,31 @@ module CompositionRoot =
     module AuthenticationSvc = 
 
         let private authConfig = config.Authentication
+        let private authSvc = AuthenticationService.create authConfig db
 
-        // Using an interface here ends up nicer... implemented as an object expression
-        let private authRepo = 
-            { new IAuthenticationRepository with 
-                member __.GetAuthenticatedUser token = AuthenticationRepository.getAuthenticatedUser db token
-                member __.GetUserForAuth email       = AuthenticationRepository.getRegisteredUserByEmail db email
-                member __.InsertNewLogin newLogin    = AuthenticationRepository.insertNewLogin db newLogin
-                member __.UpdateLoginStatus status   = AuthenticationRepository.updateLoginStatus db status }
-
-        let private authFailureToAppError authFailure = 
+        let authFailureToAppError authFailure = 
             match authFailure with
             | IsLockedOut msg -> Msg msg
-            | _ -> Msg "Invalid email/password."
+            | _ -> Msg "Invalid email/password." // Always return same error... TODO: log other error
 
         let authenticate email password = 
-            AuthenticationService.authenticate authConfig authRepo email (PlainPassword password)
-            |> Result.mapError authFailureToAppError
+            authSvc.Authenticate email password 
+            |> Result.mapError authFailureToAppError 
 
-        let getAuthenticatedUser = 
-            AuthenticationRepository.getAuthenticatedUser db
-            |> AuthenticationService.getAuthenticatedUser 
-            >> toAppResult
-
-        let revokeToken = 
-            AuthenticationRepository.revokeToken db
-            |> AuthenticationService.revokeToken 
-
-        
-        let private dbGetRegisteredUserByToken = AuthenticationRepository.getRegisteredUserByToken db 
-        let private dbUpdatePassword = AuthenticationRepository.updatePassword db 
-
-        let changePassword =
-            (dbGetRegisteredUserByToken, dbUpdatePassword)
-            ||> AuthenticationService.changePassword
-            >> toAppResult
+        let revokeToken = authSvc.RevokeToken
+        let changePassword = authSvc.ChangePassword >> toAppResult
+        let getAuthenticatedUser = authSvc.GetAuthenticatedUser >> toAppResult
 
     module UsersSvc = 
 
-        let private dbGetUserByEmail    = UserRepository.getUserByEmail db
-        let private dbGetUsers          = UserRepository.getUsers db
-        let private dbGetUser           = UserRepository.getUser db
-        let private dbInsertNewUser     = UserRepository.insertNewUser db
+        let private userSvc = UserService.create db
 
-        let addUser = 
-            UserService.addUser dbGetUserByEmail dbInsertNewUser 
-            >> toAppResult
+        let add = userSvc.Add >> toAppResult
 
-        let getUsers = UserService.getUsers dbGetUsers
+        let list () = userSvc.List ()
 
-        let getUser userId = 
-            UserService.getUser dbGetUser userId
+        let get userId = 
+            userSvc.Get userId
             |> optionToAppResultOrNotFound
 
     module GameDataSvc = 
@@ -78,61 +52,40 @@ module CompositionRoot =
 
     module CharactersSvc = 
 
-        let private dbGetCharacter        = CharactersReadRepository.getCharacter db
-        let private dbGetCharacters       = CharactersReadRepository.getCharacters db
-        let private dbInsertNewCharacter  = CharactersEditRepository.insertNewCharacter db
-        let private dbUpdateCharacter     = CharactersEditRepository.updateCharacter db
-        let private dbDeleteCharacter     = CharactersEditRepository.deleteCharacter db
+        let private charSvc = CharactersService.create db
 
-        let getCharacter characterId userId = 
-            CharactersService.getCharacter dbGetCharacter characterId userId
+        let get characterId userId = 
+            charSvc.Get characterId userId
             |> optionToAppResultOrNotFound
 
-        let getCharacters = CharactersService.getCharacters dbGetCharacters
+        let list = charSvc.List 
 
-        let addCharacter  = 
-            CharactersService.addCharacter dbInsertNewCharacter 
-            >> toAppResult
+        let add = charSvc.Add >> toAppResult
 
-        let updateCharacter  = 
-            CharactersService.updateCharacter dbGetCharacter dbUpdateCharacter 
-            >> toAppResult
+        let update = charSvc.Update >> toAppResult
 
-        let deleteCharacter characterId userId = 
-            CharactersService.deleteCharacter dbGetCharacter dbDeleteCharacter characterId userId
+        let delete characterId userId = 
+            charSvc.Delete characterId userId
             |> toAppResult
 
     module ScenarioSvc = 
 
-        let private dbGetDiscards    = DeckRepository.getDiscards db
-        let private dbInsertDiscard  = DeckRepository.insertDiscard db
-        let private dbDeleteDiscards = DeckRepository.deleteDiscards db
-
-        let private getDeck = DeckService.getDeck dbGetDiscards 
-        let private drawCardFromDeck = DeckService.drawCard dbGetDiscards dbInsertDiscard
-        let private reshuffleDeck = DeckService.reshuffle dbDeleteDiscards
-
-        let private dbInsertNewScenario = ScenarioRepository.insertNewScenario db
-        let private dbCompleteScenario  = ScenarioRepository.completeActiveScenarios db
-        let private dbGetScenario = ScenarioRepository.getScenario db
-        let private dbUpdateCharacterStats = ScenarioRepository.updateCharacterStats db
-
+        let private deckSvc = DeckService.create db
+        let private scenarioSvc = ScenarioService.create db deckSvc
+        
         let newScenario character name = 
-            ScenarioService.newScenario dbInsertNewScenario reshuffleDeck character name
+            scenarioSvc.NewScenario character name
             |> toAppResult
 
-        let completeScenario = 
-            ScenarioService.completeScenario dbGetScenario dbCompleteScenario reshuffleDeck
-            >> toAppResult
+        let completeScenario = scenarioSvc.Complete >> toAppResult
 
-        let getScenario character = 
-            ScenarioService.getScenario dbGetScenario getDeck character
-            |> optionToAppResultOrNotFound
+        let getScenario = scenarioSvc.Get  >> toAppResult
 
-        let updateStats = ScenarioService.updateStats dbUpdateCharacterStats
+        let updateStats character statsUpdate = 
+            scenarioSvc.UpdateStats character statsUpdate
+            |> toAppResult
 
-        let drawCard = ScenarioService.drawCard drawCardFromDeck 
+        let drawCard = scenarioSvc.DrawCard >> toAppResult
 
-        let reshuffle = ScenarioService.reshuffle reshuffleDeck
-
+        let reshuffle = scenarioSvc.Reshuffle >> toAppResult
 

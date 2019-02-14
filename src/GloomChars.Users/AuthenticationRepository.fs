@@ -190,3 +190,13 @@ module AuthenticationRepository =
     let updatePassword (dbContext : IDbContext) (newPassword : NewPasswordInfo)  = 
         AuthenticationSql.updatePassword newPassword.UserId newPassword.PasswordHash
         |> dbContext.Execute
+
+    let create (db : IDbContext) = 
+        { new IAuthenticationRepository with 
+            member __.GetAuthenticatedUser token = getAuthenticatedUser db token
+            member __.GetUserForAuth email       = getRegisteredUserByEmail db email
+            member __.InsertNewLogin newLogin    = insertNewLogin db newLogin
+            member __.UpdateLoginStatus status   = updateLoginStatus db status
+            member __.RevokeToken token = revokeToken db token
+            member __.GetUserForAuthByToken token = getRegisteredUserByToken db token
+            member __.UpdatePassword newPassword = updatePassword db newPassword }

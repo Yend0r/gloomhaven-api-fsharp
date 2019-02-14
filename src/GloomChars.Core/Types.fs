@@ -191,3 +191,31 @@ type ScenarioState =
         CharacterStats : ScenarioCharacterStats
         ModifierDeck   : ModifierDeck    
     }
+
+type StatsUpdate = 
+    {      
+        Health      : int option
+        Experience  : int option 
+    }
+
+// Interfaces for services - makes the calling code do less work
+
+type ICharactersService = 
+    abstract member Get : CharacterId -> UserId -> Character option
+    abstract member List : UserId -> CharacterListItem list
+    abstract member Add : NewCharacter -> Result<int, string>
+    abstract member Update : CharacterUpdate -> Result<int, string>
+    abstract member Delete : CharacterId -> UserId -> Result<int, string>
+
+type IDeckService = 
+    abstract member Get : Character -> ModifierDeck
+    abstract member Draw : Character -> ModifierDeck
+    abstract member Reshuffle : Character -> ModifierDeck
+
+type IScenarioService = 
+    abstract member Get : Character -> Result<ScenarioState, string>
+    abstract member NewScenario : Character -> string -> Result<int, string>
+    abstract member Complete : Character -> Result<int, string>
+    abstract member UpdateStats : Character -> StatsUpdate -> Result<ScenarioState, string>
+    abstract member DrawCard : Character -> Result<ScenarioState, string>
+    abstract member Reshuffle : Character -> Result<ScenarioState, string>

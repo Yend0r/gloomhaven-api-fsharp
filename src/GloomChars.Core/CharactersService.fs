@@ -11,16 +11,16 @@ module CharactersService =
         let perkExists = perksContain (GameData.gloomClass className).Perks
         perkUpdates |> List.choose (fun p -> if perkExists p.Id then Some p else None) 
 
-    let getCharacter (dbGetCharacter : CharacterId -> UserId -> Character option) characterId userId : Character option = 
+    let get (dbGetCharacter : CharacterId -> UserId -> Character option) characterId userId : Character option = 
         dbGetCharacter characterId userId
 
-    let getCharacters (dbGetCharacters : UserId -> CharacterListItem list) userId : CharacterListItem list = 
+    let list (dbGetCharacters : UserId -> CharacterListItem list) userId : CharacterListItem list = 
         dbGetCharacters userId
 
-    let addCharacter (dbInsertNewCharacter : NewCharacter -> Result<int, string>) (newCharacter : NewCharacter) = 
+    let add (dbInsertNewCharacter : NewCharacter -> Result<int, string>) (newCharacter : NewCharacter) = 
         dbInsertNewCharacter newCharacter
 
-    let updateCharacter 
+    let update
         (dbGetCharacter : CharacterId -> UserId -> Character option)
         (dbUpdateCharacter : CharacterUpdate -> Result<int, string>) 
         (character : CharacterUpdate) = 
@@ -33,7 +33,7 @@ module CharactersService =
         | None -> 
             Error "Character not found."
 
-    let deleteCharacter 
+    let delete 
         (dbGetCharacter : CharacterId -> UserId -> Character option)
         (dbDeleteCharacter : CharacterId -> UserId -> int) 
         characterId 
@@ -44,3 +44,28 @@ module CharactersService =
         |> function 
         | Some _ -> Ok (dbDeleteCharacter characterId userId)
         | None -> Error "Character not found."
+
+    let create db = 
+
+        let dbGetCharacter       = CharactersReadRepository.getCharacter db
+        let dbGetCharacters      = CharactersReadRepository.getCharacters db
+        let dbInsertNewCharacter = CharactersEditRepository.insertNewCharacter db
+        let dbUpdateCharacter    = CharactersEditRepository.updateCharacter db
+        let dbDeleteCharacter    = CharactersEditRepository.deleteCharacter db
+
+        { new ICharactersService with 
+            member __.Get characterId userId = 
+                get dbGetCharacter characterId userId
+
+            member __.List userId = 
+                list dbGetCharacters userId
+
+            member __.Add newCharacter = 
+                add dbInsertNewCharacter newCharacter
+
+            member __.Update characterUpdate = 
+                update dbGetCharacter dbUpdateCharacter  characterUpdate
+
+            member __.Delete characterId userId = 
+                delete dbGetCharacter dbDeleteCharacter characterId userId
+        }

@@ -4,6 +4,24 @@ module ScenarioService =
     open System    
     open FSharpPlus
 
+    let private mergeStats (statsUpdate : StatsUpdate) (scenario : ScenarioState) : ScenarioCharacterStats = 
+        let max = scenario.Info.MaxHealth
+        let stats = scenario.CharacterStats
+
+        let getValidHp max hp = 
+            if (hp < 0) then 0 
+            elif hp > max then max
+            else hp
+
+        let getValidXp xp = 
+            if (xp < 0) then 0 
+            else xp
+
+        { 
+            Health = Option.defaultValue stats.Health statsUpdate.Health |> getValidHp max
+            Experience = Option.defaultValue stats.Experience statsUpdate.Experience |> getValidXp
+        }
+
     let newScenario 
         (dbInsertNewScenario : CharacterId -> string -> int -> Result<int, string>) 
         (reshuffle : Character -> ModifierDeck)
@@ -17,7 +35,7 @@ module ScenarioService =
 
         dbInsertNewScenario character.Id name characterHp
 
-    let completeScenario 
+    let complete 
         (dbGetScenario : CharacterId -> (ScenarioInfo * ScenarioCharacterStats) option) 
         (dbCompleteScenario : CharacterId -> int) 
         (reshuffle : Character -> ModifierDeck)
@@ -31,49 +49,79 @@ module ScenarioService =
         | None -> 
             Error "Scenario not found"
 
-    let getScenario 
+    let get 
         (dbGetScenario : CharacterId -> (ScenarioInfo * ScenarioCharacterStats) option) 
         (getDeck : Character -> ModifierDeck) 
-        (character : Character) : ScenarioState option  =
+        (character : Character) : Result<ScenarioState, string>  =
 
         dbGetScenario character.Id 
-        |> map (fun (scenario, stats) -> 
-            {
-                Info           = scenario
+        |> function 
+        | Some(info, stats) ->  
+            Ok {
+                Info           = info
                 CharacterStats = stats
                 ModifierDeck   = getDeck character
-            })
+            }
+        | None -> 
+            Error "Could not find scenario." 
 
     let updateStats 
         (dbUpdateCharacterStats : int -> ScenarioCharacterStats -> unit)
-        (scenarioState : ScenarioState) 
-        (stats : ScenarioCharacterStats) =
+        (getScenario : Character -> Result<ScenarioState, string>) 
+        (character : Character) 
+        (statsUpdate : StatsUpdate) =
 
-        let getValidHp hp = 
-            if (hp < 0) then 0 
-            elif hp > scenarioState.Info.MaxHealth then scenarioState.Info.MaxHealth
-            else hp
-        let getValidXp xp = 
-            if (xp < 0) then 0 
-            else xp
+        getScenario character
+        |> map (fun scenarioState -> 
+            let newStats = mergeStats statsUpdate scenarioState
 
-        let validStats = { stats with Health = getValidHp stats.Health; Experience = getValidXp stats.Experience }
-
-        (scenarioState.Info.Id, validStats)
-        ||> dbUpdateCharacterStats 
-
-        { scenarioState with CharacterStats = validStats }
+            (scenarioState.Info.Id, newStats)
+            ||> dbUpdateCharacterStats
+    
+            { scenarioState with CharacterStats = newStats }
+        ) 
 
     let drawCard 
         (drawCard : Character -> ModifierDeck)
-        (character : Character)
-        (scenarioState : ScenarioState) =
+        (getScenario : Character -> Result<ScenarioState, string>) 
+        (character : Character) =
 
-        { scenarioState with ModifierDeck = drawCard character }  
+        getScenario character
+        |> map (fun scenarioState -> { scenarioState with ModifierDeck = drawCard character })  
 
     let reshuffle 
         (reshuffle : Character -> ModifierDeck)
-        (character : Character)
-        (scenarioState : ScenarioState) =
+        (getScenario : Character -> Result<ScenarioState, string>) 
+        (character : Character) =
 
-        { scenarioState with ModifierDeck = reshuffle character }
+        getScenario character
+        |> map (fun scenarioState -> { scenarioState with ModifierDeck = reshuffle character })
+
+    let create db (deckSvc : IDeckService) = 
+
+        let dbInsertNewScenario = ScenarioRepository.insertNewScenario db
+        let dbCompleteScenario  = ScenarioRepository.completeActiveScenarios db
+        let dbGetScenario = ScenarioRepository.getScenario db
+        let dbUpdateCharacterStats = ScenarioRepository.updateCharacterStats db
+
+        let getScenario = get dbGetScenario deckSvc.Get
+
+        { new IScenarioService with 
+            member __.Get character = 
+                getScenario character
+
+            member __.NewScenario character name = 
+                newScenario dbInsertNewScenario deckSvc.Reshuffle character name
+
+            member __.Complete character = 
+                complete dbGetScenario dbCompleteScenario deckSvc.Reshuffle character
+
+            member __.UpdateStats character stats = 
+                updateStats dbUpdateCharacterStats getScenario character stats
+
+            member __.DrawCard character = 
+                drawCard deckSvc.Draw getScenario character
+
+            member __.Reshuffle character = 
+                reshuffle deckSvc.Reshuffle getScenario character
+        }

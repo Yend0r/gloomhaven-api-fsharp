@@ -7,6 +7,7 @@ module AuthenticationController =
     open FSharpPlus
     open ResponseHandlers
     open AuthenticationModels
+    open GloomChars.Users
 
     let private mapToPasswordUpdate changePasswordRequest ctx = 
         Ok toPasswordUpdate
@@ -14,7 +15,7 @@ module AuthenticationController =
         <*> WebAuthentication.getLoggedInUserAccessToken ctx
 
     let login ctx (loginRequest : LoginRequest) : HttpHandler =
-        (loginRequest.Email, loginRequest.Password)
+        (loginRequest.Email, PlainPassword loginRequest.Password)
         ||> AuthenticationSvc.authenticate 
         |> map toLoginResponse
         |> either toSuccess (toError "Login failed.")
