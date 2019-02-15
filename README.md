@@ -27,6 +27,7 @@ Read more about the [Architecture](Architecture.md)
 |  | [Patch Character](#Patch-Character) |
 | Scenarios | [Get Scenario](#Get-Scenario) |
 |  | [New Scenario](#New-Scenario) |
+|  | [Complete Scenario](#Complete-Scenario) |
 |  | [Scenario Stat Update](#Scenario-Stat-Update) |
 |  | [Scenario Deck Action](#Scenario-Deck-Action) |
 
@@ -612,6 +613,21 @@ Example Request:
     "name": "Misty Swamp Scenario"
 }
 ```
+
+---
+
+## Complete Scenario
+
+`https://[path-to-api]/characters/{characterId}/scenarios`
+
+Method: DELETE
+
+Parameters: 
+| Name  | Value | 
+| --- | --- | 
+| characterId | The id of the character |
+
+Response code: `204 NoContent`
 
 ---
 
