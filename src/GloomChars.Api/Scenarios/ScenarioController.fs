@@ -32,8 +32,7 @@ module ScenarioController =
 
         (* 
         // Alternative style that uses FSharpPlus
-            WebAuthentication.getLoggedInUserId ctx
-            >>= CharactersSvc.getCharacter (CharacterId characterId)
+            getCharacter ctx characterId
             |> map ScenarioSvc.getScenario
             >>= map toScenarioViewModel
             |> either toSuccess (toError "Scenario not found")
@@ -52,16 +51,16 @@ module ScenarioController =
         }
         |> either toCreated (toError "Failed to add scenario.")
 
-    let private toStatsUpdate (stats : StatsUpdateRequest) : StatsUpdate = 
+    let private toStatsUpdate (statsPatch : StatsPatchRequest) : StatsUpdate = 
         { 
-            Health = stats.Health 
-            Experience = stats.Experience 
+            Health = statsPatch.Health 
+            Experience = statsPatch.Experience 
         }
 
-    let patchScenarioStats (ctx : HttpContext) (statsUpdateRequest : StatsUpdateRequest) (characterId : int) : HttpHandler = 
+    let patchScenarioStats (ctx : HttpContext) (statsPatch : StatsPatchRequest) (characterId : int) : HttpHandler = 
         result {
             let! character = getCharacter ctx characterId
-            let statsUpdate = toStatsUpdate statsUpdateRequest 
+            let statsUpdate = toStatsUpdate statsPatch 
             let! updatedScenario = ScenarioSvc.updateStats character statsUpdate
             return toScenarioViewModel updatedScenario
         }

@@ -14,7 +14,7 @@ module ScenarioModels =
         }
 
     [<CLIMutable>]
-    type StatsUpdateRequest = 
+    type StatsPatchRequest = 
         {
             Health     : int option
             Experience : int option 

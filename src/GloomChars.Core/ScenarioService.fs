@@ -8,18 +8,22 @@ module ScenarioService =
         let max = scenario.Info.MaxHealth
         let stats = scenario.CharacterStats
 
-        let getValidHp max hp = 
-            if (hp < 0) then 0 
+        let getValidHp max hp =             
+            if hp < 0 then 0 
             elif hp > max then max
             else hp
-
+   
+        let newHp = Option.defaultValue stats.Health statsUpdate.Health |> getValidHp max
+            
         let getValidXp xp = 
-            if (xp < 0) then 0 
+            if xp < 0 then 0 
             else xp
 
+        let newXp = Option.defaultValue stats.Experience statsUpdate.Experience |> getValidXp
+
         { 
-            Health = Option.defaultValue stats.Health statsUpdate.Health |> getValidHp max
-            Experience = Option.defaultValue stats.Experience statsUpdate.Experience |> getValidXp
+            Health = newHp
+            Experience = newXp
         }
 
     let newScenario 

@@ -22,7 +22,7 @@ module ScenarioSql =
 
         sql
             """
-                SELECT id           AS Id, 
+            SELECT  id              AS Id, 
                     character_id    AS CharacterId, 
                     name            AS Name,
                     health          AS Health, 
@@ -43,24 +43,24 @@ module ScenarioSql =
 
         sql
             """
-                INSERT INTO scenarios
-                    (is_active, 
-                    character_id, 
-                    name, 
-                    health, 
-                    max_health, 
-                    experience, 
-                    date_started, 
-                    date_last_event)
-                VALUES 
-                    (true,
-                    @character_id, 
-                    @name, 
-                    @health, 
-                    @max_health, 
-                    0, 
-                    @date_started, 
-                    @date_last_event)
+            INSERT INTO scenarios
+                (is_active, 
+                character_id, 
+                name, 
+                health, 
+                max_health, 
+                experience, 
+                date_started, 
+                date_last_event)
+            VALUES 
+                (true,
+                @character_id, 
+                @name, 
+                @health, 
+                @max_health, 
+                0, 
+                @date_started, 
+                @date_last_event)
             """
             [
                 p "character_id" charId
@@ -76,12 +76,11 @@ module ScenarioSql =
 
         sql
             """                
-                UPDATE scenarios 
-                SET date_completed = @date_completed,
-                    is_active = false
-                WHERE character_id = @character_id 
-                    AND is_active = true;
-
+            UPDATE scenarios 
+            SET date_completed = @date_completed,
+                is_active = false
+            WHERE character_id = @character_id 
+                AND is_active = true;
             """
             [
                 p "date_completed" DateTime.Now
@@ -91,11 +90,11 @@ module ScenarioSql =
     let updateCharacterStats scenarioId (stats : ScenarioCharacterStats) = 
         sql
             """                
-                UPDATE scenarios 
-                SET health          = @health,
-                    experience      = @experience,
-                    date_last_event = @date_last_event
-                WHERE id = @scenario_id;
+            UPDATE scenarios 
+            SET health          = @health,
+                experience      = @experience,
+                date_last_event = @date_last_event
+            WHERE id = @scenario_id;
             """
             [
                 p "health" stats.Health
@@ -111,7 +110,7 @@ module ScenarioRepository =
     open FSharpPlus
 
     let private toScenario (dbScenario : DbScenario) = 
-        let scenario : ScenarioInfo = 
+        let info : ScenarioInfo = 
             {
                 Id            = dbScenario.Id
                 CharacterId   = CharacterId dbScenario.CharacterId
@@ -127,7 +126,7 @@ module ScenarioRepository =
                 Experience    = dbScenario.Experience
             } 
 
-        (scenario, stats)
+        (info, stats)
 
     let completeActiveScenarios (dbContext : IDbContext) characterId = 
         ScenarioSql.completeScenario characterId
