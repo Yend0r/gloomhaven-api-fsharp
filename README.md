@@ -1,4 +1,4 @@
-# GloomHaven Api (F#)
+# GloomHaven Api (F#) - Test Branch
 
 A [Giraffe](https://github.com/giraffe-fsharp/Giraffe) rest API used to to persist characters and associated modifier decks for the GloomHaven board game. This is only used by me and some friends so it has a simple authentication system. 
 
