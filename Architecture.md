@@ -2,7 +2,7 @@
 
 The architecture is a typical layered app that attempts to separate concerns via layering as well as by code modularity. 
 
-Web Layer -> Internal "Services" Layer -> Persistence Layer
+Web Layer -> Internal "Services" Layer -> Persistence Layer.
 
 ## Web Layer
 
@@ -42,7 +42,7 @@ let updateCharacter (ctx : HttpContext) (character : CharacterUpdateRequest) (ch
     |> either toSuccessNoContent (toError "Failed to patch character.")
 ```
 
-Which uses the spaceship operator `<*>` (appplicative functor) and the bind operator `>>=` to remove the boilerplate around the error handling.
+Which uses the spaceship operator `<*>` (appplicative functor) and the bind operator `>>=` to remove the boilerplate around the error handling...
 
 Or it can be rewritten using a computation expression to this:
 
