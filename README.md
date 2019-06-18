@@ -6,7 +6,7 @@ A [Giraffe](https://github.com/giraffe-fsharp/Giraffe) rest API used to to persi
 
 - ASP.NET Core 2.2
 - [Giraffe](https://github.com/giraffe-fsharp/Giraffe) : a native functional ASP.NET Core web framework.
-- [PostgreSQL](https://www.postgresql.org/) : a relational database
+- [PostgreSQL](https://www.postgresql.org/) : a relational database.
 - [Dapper](https://github.com/StackExchange/Dapper) : a micro-orm also used by StackOverflow 
 
 Read more about the [Architecture](Architecture.md)
